@@ -34,7 +34,8 @@ local ElvAddOns = {
 	ElvUI_Lib_oUF = true,
 	ElvUI_Lib_oUF_Plugins = true,
 	ElvUI_Lib_RangeCheck = true,
-	ElvUI_Libraries = true
+	ElvUI_Libraries = true,
+	ElvUI_CPU = true -- CPU debug tool
 }
 
 function E:LuaError(msg)
