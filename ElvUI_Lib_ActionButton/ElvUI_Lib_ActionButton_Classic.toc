@@ -2,5 +2,6 @@
 ## Author: Elv, Simpy
 ## Version: 1.00
 ## Interface: 11403
+## RequiredDeps: ElvUI_Lib_CustomGlow
 
 LibActionButton-1.0\LibActionButton-1.0.lua
