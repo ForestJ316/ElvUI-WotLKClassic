@@ -5,13 +5,11 @@
 ## SavedVariables: ElvDB, ElvPrivateDB
 ## SavedVariablesPerCharacter: ElvCharacterDB
 ## OptionalDeps: SharedMedia, Tukui, Masque
+## RequiredDeps: ElvUI_Libraries
 ## Interface: 30400
 ## X-Interface: 30400
 ## X-Tukui-ProjectID: 2
-## X-Tukui-ProjectFolders: ElvUI_OptionsUI, ElvUI
-## X-oUF: ElvUF
-
-Wrath\Libs.xml
+## X-Tukui-ProjectFolders: ElvUI_Options, ElvUI
 
 Core\init.lua
 Core\Developer\Load_Developer.xml

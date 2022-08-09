@@ -31,7 +31,7 @@ function E:LuaError(msg)
 	if switch == 'on' or switch == '1' then
 		for i=1, GetNumAddOns() do
 			local name = GetAddOnInfo(i)
-			if name ~= 'ElvUI' and name ~= 'ElvUI_OptionsUI' and name ~= 'ElvUI_CPU' and E:IsAddOnEnabled(name) then
+			if name ~= 'ElvUI' and name ~= 'ElvUI_Options' and name ~= 'ElvUI_CPU' and E:IsAddOnEnabled(name) then
 				DisableAddOn(name, E.myname)
 				ElvDB.DisabledAddOns[name] = i
 			end
@@ -216,8 +216,8 @@ function E:LoadCommands()
 	end
 
 	self:RegisterChatCommand('in', 'DelayScriptCall')
-	self:RegisterChatCommand('ec', 'ToggleOptionsUI')
-	self:RegisterChatCommand('elvui', 'ToggleOptionsUI')
+	self:RegisterChatCommand('ec', 'ToggleOptions')
+	self:RegisterChatCommand('elvui', 'ToggleOptions')
 
 	self:RegisterChatCommand('hdt', DT.HyperDT)
 	self:RegisterChatCommand('bgstats', DT.ToggleBattleStats)

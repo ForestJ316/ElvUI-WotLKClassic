@@ -1,0 +1,8 @@
+## Title: |cff1784d1ElvUI|r |cfd9b9b9bLibraries|r
+## Author: Elv, Simpy
+## Version: 1.00
+## Interface: 90205
+## X-oUF: ElvUF
+
+Mainline\Libs.xml
+Options\Libs.xml

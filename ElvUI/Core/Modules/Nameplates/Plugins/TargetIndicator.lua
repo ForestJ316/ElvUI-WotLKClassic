@@ -1,8 +1,6 @@
 local E, L, V, P, G = unpack(ElvUI)
 local NP = E:GetModule('NamePlates')
-
-local _, ns = ...
-local oUF = ns.oUF
+local oUF = E.oUF
 
 local UnitHealth = UnitHealth
 local UnitIsUnit = UnitIsUnit

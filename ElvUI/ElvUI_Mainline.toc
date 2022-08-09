@@ -5,13 +5,11 @@
 ## SavedVariables: ElvDB, ElvPrivateDB
 ## SavedVariablesPerCharacter: ElvCharacterDB
 ## OptionalDeps: SharedMedia, Tukui, Masque, Blizzard_PetJournal
+## RequiredDeps: ElvUI_Libraries
 ## Interface: 90205
 ## X-Interface: 90207
 ## X-Tukui-ProjectID: -2
-## X-Tukui-ProjectFolders: ElvUI_OptionsUI, ElvUI
-## X-oUF: ElvUF
-
-Mainline\Libs.xml
+## X-Tukui-ProjectFolders: ElvUI_Options, ElvUI
 
 Core\init.lua
 Core\Developer\Load_Developer.xml

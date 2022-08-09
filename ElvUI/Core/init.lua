@@ -43,7 +43,7 @@ Engine[4] = E.DF.profile
 Engine[5] = E.DF.global
 _G.ElvUI = Engine
 
-E.oUF = Engine.oUF
+E.oUF = _G.ElvUF
 E.ActionBars = E:NewModule('ActionBars','AceHook-3.0','AceEvent-3.0')
 E.AFK = E:NewModule('AFK','AceEvent-3.0','AceTimer-3.0')
 E.Auras = E:NewModule('Auras','AceHook-3.0','AceEvent-3.0')
@@ -144,7 +144,7 @@ do
 		end
 	end
 
-	-- added on ElvUI_OptionsUI load: AceGUI, AceConfig, AceConfigDialog, AceConfigRegistry, AceDBOptions
+	-- added on ElvUI_Options load: AceGUI, AceConfig, AceConfigDialog, AceConfigRegistry, AceDBOptions
 	-- backwards compatible for plugins
 	E.LSM = E.Libs.LSM
 	E.UnitFrames.LSM = E.Libs.LSM
