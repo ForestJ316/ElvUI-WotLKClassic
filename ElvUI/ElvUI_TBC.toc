@@ -5,11 +5,11 @@
 ## SavedVariables: ElvDB, ElvPrivateDB
 ## SavedVariablesPerCharacter: ElvCharacterDB
 ## OptionalDeps: SharedMedia, Tukui, Masque
-## RequiredDeps: ElvUI_Libraries
+## RequiredDeps: ElvUI_Libraries, ElvUI_Lib_ActionButton, ElvUI_Lib_CustomGlow, ElvUI_Lib_oUF, ElvUI_Lib_oUF_Plugins, ElvUI_Lib_RangeCheck
 ## Interface: 20504
 ## X-Interface: 20504
 ## X-Tukui-ProjectID: 2
-## X-Tukui-ProjectFolders: ElvUI_Options, ElvUI_Libraries, ElvUI
+## X-Tukui-ProjectFolders: ElvUI, ElvUI_Options, ElvUI_Libraries, ElvUI_Lib_ActionButton, ElvUI_Lib_CustomGlow, ElvUI_Lib_oUF, ElvUI_Lib_oUF_Plugins, ElvUI_Lib_RangeCheck
 
 Core\init.lua
 Core\Developer\Load_Developer.xml

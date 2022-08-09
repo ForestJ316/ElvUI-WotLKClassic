@@ -1,6 +1,4 @@
-local _, ns = ...
-local oUF = ns.oUF or oUF
-assert(oUF, 'oUF not loaded')
+local oUF = ElvUF
 
 local Update = function(self, event, unit)
 	if event == 'ARENA_OPPONENT_UPDATE' and unit ~= self.unit then return; end

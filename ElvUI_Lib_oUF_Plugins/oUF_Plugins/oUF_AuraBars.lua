@@ -1,5 +1,4 @@
-local _, ns = ...
-local oUF = ns.oUF
+local oUF = ElvUF
 
 local VISIBLE = 1
 local HIDDEN = 0

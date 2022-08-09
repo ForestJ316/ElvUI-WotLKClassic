@@ -1,0 +1,6 @@
+## Title: |cff1784d1ElvUI|r |cfd9b9b9bLib RangeCheck|r
+## Author: Elv, Simpy
+## Version: 1.00
+## Interface: 20504
+
+LibRangeCheck-2.0\LibRangeCheck-2.0.lua

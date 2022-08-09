@@ -1,6 +1,4 @@
-local _, ns = ...
-local oUF = ns.oUF or oUF
-assert(oUF, 'oUF not loaded')
+local oUF = ElvUF
 
 local function GetTrinketIconBySpellID(spellID)
 	local _, _, spellTexture = GetSpellInfo(spellID)

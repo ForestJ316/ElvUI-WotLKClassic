@@ -1,5 +1,5 @@
 local _, ns = ...
-local oUF = ns.oUF or oUF
+local oUF = ElvUF
 
 local _G = _G
 local addon = {}

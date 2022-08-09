@@ -37,8 +37,7 @@
 	 - .OverrideText(text, now)
 --]]
 
-local _, ns = ...
-local oUF = oUF or ns.oUF
+local oUF = ElvUF
 
 local select, unpack, strfind = select, unpack, strfind
 local CreateFrame = CreateFrame

@@ -1,5 +1,4 @@
-local _, ns = ...
-local oUF = ns.oUF
+local oUF = ElvUF
 
 local next = next
 local GetTime = GetTime

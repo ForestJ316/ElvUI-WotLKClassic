@@ -1,0 +1,6 @@
+## Title: |cff1784d1ElvUI|r |cfd9b9b9bLib CustomGlow|r
+## Author: Elv, Simpy
+## Version: 1.00
+## Interface: 30400
+
+LibCustomGlow-1.0\LibCustomGlow-1.0.lua

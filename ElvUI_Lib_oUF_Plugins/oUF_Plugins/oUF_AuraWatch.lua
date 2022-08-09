@@ -1,8 +1,7 @@
 -- Original work by Astromech
 -- Rewritten based on Auras by Azilroka and Simpy
 
-local _, ns = ...
-local oUF = ns.oUF
+local oUF = ElvUF
 local LCD = oUF.isClassic and LibStub('LibClassicDurations', true)
 
 local VISIBLE = 1

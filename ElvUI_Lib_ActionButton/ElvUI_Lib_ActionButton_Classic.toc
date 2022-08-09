@@ -1,0 +1,6 @@
+## Title: |cff1784d1ElvUI|r |cfd9b9b9bLib ActionButton|r
+## Author: Elv, Simpy
+## Version: 1.00
+## Interface: 11403
+
+LibActionButton-1.0\LibActionButton-1.0.lua

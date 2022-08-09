@@ -1,6 +1,4 @@
-local _, ns = ...
-local oUF = _G.oUF or ns.oUF
-assert(oUF, "oUF_Cutaway was unable to locate oUF install.")
+local oUF = ElvUF
 
 --[[
 	Configuration values for both health and power:
