@@ -561,6 +561,30 @@ E:AddTag('difficultycolor', 'UNIT_LEVEL PLAYER_LEVEL_UP', function(unit)
 	return Hex(color.r, color.g, color.b)
 end)
 
+E:AddTag('levelcolor', 'UNIT_LEVEL PLAYER_LEVEL_UP', function(unit)
+	local r, g, b
+	local level = UnitLevel(unit)
+	if level > 1 and not UnitIsPlayer(unit) then
+		local DiffColor = UnitLevel(unit) - UnitLevel("player")
+		if DiffColor >= 5 then
+			r, g, b = 1.00, 0.10, 0.10 -- red
+		elseif DiffColor >= 3 then
+			r, g, b = 1.00, 0.50, 0.25 -- orange
+		elseif DiffColor >= -2 then
+			r, g, b = 1.00, 1.00, 0.00 -- yellow
+		elseif -DiffColor <= GetQuestGreenRange() then
+			r, g, b = 0.25, 0.75, 0.25 -- green
+		else
+			r, g, b = 0.50, 0.50, 0.50 -- grey
+		end
+	elseif level == -1 and not UnitIsPlayer(unit) then -- case for ?? level mobs, just do red ??
+		r, g, b = 1.00, 0.10, 0.10
+	elseif UnitIsPlayer(unit) then
+		r, g, b = 1.00, 1.00, 0.00 -- just do yellow for players
+	end
+	return Hex(r, g, b)
+end)
+
 E:AddTag('selectioncolor', 'UNIT_NAME_UPDATE UNIT_FACTION INSTANCE_ENCOUNTER_ENGAGE_UNIT', function(unit)
 	local selection = NP:UnitSelectionType(unit)
 	local cs = ElvUF.colors.selection[selection]
