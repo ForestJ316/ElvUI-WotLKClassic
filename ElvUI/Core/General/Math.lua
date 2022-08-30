@@ -56,11 +56,20 @@ function E:ShortValue(value, dec)
 	for i = 1, #values do
 		local arg1, arg2, arg3 = unpack(values[i])
 		if abs_value >= arg1 then
-			if decimal then
+			if abs(value) >= 1e9 then
+				return format("%.1f%s", value / 1e9, "B")
+			elseif abs(value) >= 1e6 then
+				return format("%.1f%s", value / 1e6, "M")
+			elseif abs(value) >= 1e5 then
+				return format("%.1f%s", value / 1e5, "K")
+			else
+				return format("%d", value)
+			end
+			--[[if decimal then
 				return format(decimal..arg2, value / arg1)
 			else
 				return format(arg3, value / arg1)
-			end
+			end]]
 		end
 	end
 

@@ -294,9 +294,26 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 	E:AddTag(format('power:%s', tagFormat), 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
 		local powerType = UnitPowerType(unit)
 		local min = UnitPower(unit, powerType)
-		if min ~= 0 then
+		--if min ~= 0 then
 			return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, powerType))
+		--end
+	end)
+
+	E:AddTag(format('combat', tagFormat), 1, function(unit)
+		local inCombat = UnitAffectingCombat(unit)
+		local String
+		if inCombat then 
+			String = "|TInterface\\CharacterFrame\\UI-StateIcon:32:32:0:0:64:64:32:64:0:31|t"
+		else
+			String = ""
 		end
+		return String
+	end)
+
+	E:AddTag(format('power:percentshowzero', tagFormat), 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
+		local powerType = UnitPowerType(unit)
+		local min = UnitPower(unit, powerType)
+		return E:GetFormattedText("PERCENT", min, UnitPowerMax(unit, powerType), 0)
 	end)
 
 	E:AddTag(format('additionalmana:%s', tagFormat), 'UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER', function(unit)

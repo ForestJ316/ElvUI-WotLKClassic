@@ -97,6 +97,8 @@ function DB:ExperienceBar_Update()
 			displayString = format('%s - %s', E:ShortValue(CurrentXP), RemainXP)
 		elseif textFormat == 'CURPERCREM' then
 			displayString = format('%s - %.2f%% (%s)', E:ShortValue(CurrentXP), PercentXP, RemainXP)
+		elseif textFormat == "CURMAXPERC" then
+			displayString = format("%s / %s (%d%%)", E:ShortValue(CurrentXP, 2), E:ShortValue(XPToLevel, 2), PercentXP)
 		end
 
 		local isRested = RestedXP and RestedXP > 0
