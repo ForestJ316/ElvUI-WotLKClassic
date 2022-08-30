@@ -217,8 +217,15 @@ function UF:PostUpdateHealthColor(unit, r, g, b)
 
 	if not b then r, g, b = colors.health.r, colors.health.g, colors.health.b end
 	local newr, newg, newb -- fallback for bg if custom settings arent used
-	if ((colors.healthclass and colors.colorhealthbyvalue) or (colors.colorhealthbyvalue and parent.isForced)) and not UnitIsTapDenied(unit) then
+	if ((colors.healthclass and colors.colorhealthbyvalue) or (colors.colorhealthbyvalue and parent.isForced) or (colors.custom_npc_health and not UnitIsPlayer(unit))) and not UnitIsTapDenied(unit) then
 		newr, newg, newb = ElvUF:ColorGradient(self.cur, self.max, 1, 0, 0, 1, 1, 0, r, g, b)
+		if colors.custom_npc_health and not UnitIsPlayer(unit) then
+			newr, newg, newb = colors.npc_health_pick.r, colors.npc_health_pick.g, colors.npc_health_pick.b
+			if colors.colorhealthbyvalue then
+				newr, newg, newb = ElvUF:ColorGradient(self.cur, self.max, 1, 0, 0, 1, 1, 0, newr, newg, newb)
+			end
+		end		
+		
 		self:SetStatusBarColor(newr, newg, newb)
 	end
 

@@ -1633,6 +1633,7 @@ P.unitframe = {
 		castClassColor = false,
 		castReactionColor = false,
 		health = { r = .31, g = .31, b = .31 },
+		npc_health_pick = {r = 0, g = 0.85, b = 0},
 		health_backdrop = { r = .8, g = .01, b = .01 },
 		health_backdrop_dead = { r = .8, g = .01, b = .01 },
 		castbar_backdrop = { r = 0.5, g = 0.5, b = 0.5, a = 1 },
