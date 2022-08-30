@@ -23,7 +23,7 @@ C.Values = {
 		MONOCHROMEOUTLINE = '|cffaaaaaaMono|r Outline',
 		MONOCHROMETHICKOUTLINE = '|cffaaaaaaMono|r Thick',
 	},
-	FontSize = { min = 8, max = 64, step = 1 },
+	FontSize = { min = 4, max = 64, step = 1 },
 	Strata = { BACKGROUND = 'BACKGROUND', LOW = 'LOW', MEDIUM = 'MEDIUM', HIGH = 'HIGH', DIALOG = 'DIALOG', TOOLTIP = 'TOOLTIP' },
 	GrowthDirection = {
 		DOWN_RIGHT = format(L["%s and then %s"], L["Down"], L["Right"]),
