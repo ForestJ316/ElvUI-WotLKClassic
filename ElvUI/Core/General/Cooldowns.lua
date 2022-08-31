@@ -66,9 +66,9 @@ function E:Cooldown_OnUpdate(elapsed)
 					local opt = (id < 3 and self.roundTime) or ((id == 3 or id == 4 or id == 7) and self.showSeconds)
 					local which = (self.textColors and 2 or 1) + (opt and 2 or 0)
 					if self.textColors then
-						self.text:SetFormattedText(style[which], value, self.textColors[id], remainder)
+						self.text:SetFormattedText(style[which], ceil(value), self.textColors[id], remainder)
 					else
-						self.text:SetFormattedText(style[which], value, remainder)
+						self.text:SetFormattedText(style[which], ceil(value), remainder)
 					end
 				end
 
