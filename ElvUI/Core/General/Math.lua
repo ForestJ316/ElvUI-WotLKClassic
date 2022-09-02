@@ -57,11 +57,11 @@ function E:ShortValue(value, dec)
 		local arg1, arg2, arg3 = unpack(values[i])
 		if abs_value >= arg1 then
 			if abs(value) >= 1e9 then
-				return format("%.1f%s", value / 1e9, "B")
+				return format("%.3f%s", value / 1000000000, "B")
 			elseif abs(value) >= 1e6 then
-				return format("%.1f%s", value / 1e6, "M")
+				return format("%.2f%s", value / 1000000, "M")
 			elseif abs(value) >= 1e5 then
-				return format("%.1f%s", value / 1e5, "K")
+				return format("%.1f%s", value / 1000, "K")
 			else
 				return format("%d", value)
 			end
