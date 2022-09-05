@@ -1580,6 +1580,7 @@ P.unitframe = {
 	fontOutline = 'MONOCHROMEOUTLINE',
 	debuffHighlighting = 'FILL',
 	targetOnMouseDown = false,
+	maxAllowedGroups = true,
 	modifiers = {
 		SHIFT = 'NONE',
 		CTRL = 'NONE',
@@ -2290,6 +2291,7 @@ P.unitframe.units.party.targetsGroup.buffIndicator = nil
 P.unitframe.units.party.targetsGroup.healPrediction = nil
 
 P.unitframe.units.raid1 = CopyTable(P.unitframe.units.party)
+P.unitframe.units.raid1.customName = ''
 P.unitframe.units.raid1.groupsPerRowCol = 1
 P.unitframe.units.raid1.groupBy = 'GROUP'
 P.unitframe.units.raid1.buffs.numrows = 1
@@ -2316,21 +2318,21 @@ P.unitframe.units.raid1.power.text_format = ''
 P.unitframe.units.raid1.power.xOffset = -2
 P.unitframe.units.raid1.power.yOffset = 2
 P.unitframe.units.raid1.targetsGroup = nil
-P.unitframe.units.raid1.visibility = '[@raid6,noexists][@raid11,exists] hide;show'
+P.unitframe.units.raid1.visibility = E.Retail and '[@raid6,noexists][@raid21,exists] hide;show' or '[@raid6,noexists][@raid11,exists] hide;show'
 P.unitframe.units.raid1.width = 80
 
 P.unitframe.units.raid2 = CopyTable(P.unitframe.units.raid1)
 P.unitframe.units.raid2.debuffs.anchorPoint = 'RIGHT'
 P.unitframe.units.raid2.height = 27
 P.unitframe.units.raid2.numGroups = 5
-P.unitframe.units.raid2.visibility = '[@raid11,exists][@raid26,noexists] hide;show'
+P.unitframe.units.raid2.visibility = E.Retail and '[@raid21,noexists][@raid31,exists] hide;show' or '[@raid11,noexists][@raid26,exists] hide;show'
 P.unitframe.units.raid2.rdebuffs.enable = false
 P.unitframe.units.raid2.power.enable = false
 P.unitframe.units.raid2.roleIcon.enable = false
 
 P.unitframe.units.raid3 = CopyTable(P.unitframe.units.raid2)
 P.unitframe.units.raid3.numGroups = 8
-P.unitframe.units.raid3.visibility = '[@raid26,noexists] hide;show'
+P.unitframe.units.raid3.visibility = E.Retail and '[@raid31,noexists] hide;show' or '[@raid26,noexists] hide;show'
 
 P.unitframe.units.raidpet = CopyTable(P.unitframe.units.raid1)
 P.unitframe.units.raidpet.pvpclassificationindicator = nil
@@ -2535,7 +2537,7 @@ P.actionbar = {
 -- Visibility
 if E.Retail then
 	P.actionbar.barPet.visibility = '[petbattle] hide; [novehicleui,pet,nooverridebar,nopossessbar] show; hide'
-	P.actionbar.stanceBar.visibility = '[vehicleui] hide; [petbattle] hide; show'
+	P.actionbar.stanceBar.visibility = '[vehicleui][petbattle] hide; show'
 elseif E.Wrath then
 	P.actionbar.barPet.visibility = '[novehicleui,pet,nooverridebar,nopossessbar] show; hide'
 	P.actionbar.stanceBar.visibility = '[vehicleui] hide; show'
@@ -2597,9 +2599,9 @@ for i = 1, 10 do
 	}
 
 	if E.Retail then
-		bar.visibility = '[vehicleui] hide; [petbattle] hide; [overridebar] hide; show'
+		bar.visibility = '[vehicleui][petbattle][overridebar] hide; show'
 	elseif E.Wrath then
-		bar.visibility = '[vehicleui] hide; [overridebar] hide; show'
+		bar.visibility = '[vehicleui][overridebar] hide; show'
 	else
 		bar.visibility = '[overridebar] hide; show'
 	end

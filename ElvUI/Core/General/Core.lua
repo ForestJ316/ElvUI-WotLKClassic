@@ -4,7 +4,7 @@ local E, L, V, P, G = unpack(ElvUI)
 local LCS = E.Libs.LCS
 
 local _G = _G
-local tonumber, pairs, ipairs, error, unpack, select, tostring = tonumber, pairs, ipairs, error, unpack, select, tostring
+local tonumber, floor, pairs, ipairs, error, unpack, select, tostring = tonumber, floor, pairs, ipairs, error, unpack, select, tostring
 local strsplit, strjoin, wipe, sort, tinsert, tremove, tContains = strsplit, strjoin, wipe, sort, tinsert, tremove, tContains
 local format, find, strrep, strlen, sub, gsub = format, strfind, strrep, strlen, strsub, gsub
 local assert, type, pcall, xpcall, next, print = assert, type, pcall, xpcall, next, print
@@ -67,6 +67,7 @@ E.myrealm = GetRealmName()
 E.mynameRealm = format('%s - %s', E.myname, E.myrealm) -- contains spaces/dashes in realm (for profile keys)
 E.myspec = E.Retail and GetSpecialization()
 E.wowbuild = tonumber(E.wowbuild)
+E.wowpatch, E.wowbuild, E.wowdate, E.wowtoc = GetBuildInfo()
 E.physicalWidth, E.physicalHeight = GetPhysicalScreenSize()
 E.screenWidth, E.screenHeight = GetScreenWidth(), GetScreenHeight()
 E.resolution = format('%dx%d', E.physicalWidth, E.physicalHeight)
@@ -903,12 +904,13 @@ do
 		if event == 'CHAT_MSG_ADDON' then
 			if sender == PLAYER_NAME then return end
 			if prefix == 'ELVUI_VERSIONCHK' then
-				local msg, ver = tonumber(message), E.version
-				local inCombat = InCombatLockdown()
+				local ver, msg, inCombat = E.version, tonumber(message), InCombatLockdown()
+				local versionInRange = (E.Classic and floor(ver) == 1) or (E.Wrath and floor(ver) == 3) or (floor(ver) == 12)
+				local validRange = msg and versionInRange and (msg > ver)
 
 				E.UserList[E:StripMyRealm(sender)] = msg
 
-				if msg and (msg > ver) and not E.recievedOutOfDateMessage then -- you're outdated D:
+				if validRange and not E.recievedOutOfDateMessage then -- you're outdated D:
 					E:Print(L["ElvUI is out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"])
 
 					if msg and ((msg - ver) >= 0.05) and not inCombat then
@@ -1323,10 +1325,10 @@ function E:DBConvertSL()
 	if E.db.unitframe.units.party.groupBy == 'ROLE2' or E.db.unitframe.units.party.groupBy == 'CLASSROLE' then
 		E.db.unitframe.units.party.groupBy = 'ROLE'
 	end
-	if E.db.unitframe.units.raid.groupBy == 'ROLE2' or E.db.unitframe.units.raid.groupBy == 'CLASSROLE' then
+	if E.db.unitframe.units.raid and (E.db.unitframe.units.raid.groupBy == 'ROLE2' or E.db.unitframe.units.raid.groupBy == 'CLASSROLE') then
 		E.db.unitframe.units.raid.groupBy = 'ROLE'
 	end
-	if E.db.unitframe.units.raid40.groupBy == 'ROLE2' or E.db.unitframe.units.raid40.groupBy == 'CLASSROLE' then
+	if E.db.unitframe.units.raid40 and (E.db.unitframe.units.raid40.groupBy == 'ROLE2' or E.db.unitframe.units.raid40.groupBy == 'CLASSROLE') then
 		E.db.unitframe.units.raid40.groupBy = 'ROLE'
 	end
 	if E.db.unitframe.units.raidpet.groupBy == 'ROLE2' or E.db.unitframe.units.raidpet.groupBy == 'CLASSROLE' then
@@ -1822,7 +1824,6 @@ function E:DBConversions()
 	end
 
 	-- development converts
-
 	if E.db.unitframe.units.raid then
 		E:CopyTable(E.db.unitframe.units.raid1, E.db.unitframe.units.raid)
 		E.db.unitframe.units.raid = nil
@@ -1834,6 +1835,15 @@ function E:DBConversions()
 	end
 
 	E.db.unitframe.smartRaidFilter = nil
+
+	if E.db.movers and E.db.movers.ElvUF_RaidMover then
+		E.db.movers.ElvUF_Raid1Mover = E.db.movers.ElvUF_RaidMover
+		E.db.movers.ElvUF_RaidMover = nil
+	end
+	if E.db.movers and E.db.movers.ElvUF_Raid40Mover then
+		E.db.movers.ElvUF_Raid3Mover = E.db.movers.ElvUF_Raid40Mover
+		E.db.movers.ElvUF_Raid40Mover = nil
+	end
 
 	-- always convert
 	if not ElvCharacterDB.ConvertKeybindings then

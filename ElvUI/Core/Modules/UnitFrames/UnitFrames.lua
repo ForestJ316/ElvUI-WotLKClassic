@@ -307,7 +307,7 @@ function UF:Construct_UF(frame, unit)
 	if not UF.groupunits[unit] then
 		UF['Construct_'..gsub(E:StringTitle(unit), 't(arget)', 'T%1')..'Frame'](UF, frame, unit)
 	else
-		UF['Construct_'..E:StringTitle(UF.groupunits[unit])..'Frames'](UF, frame, unit)
+		UF['Construct_'..E:StringTitle(UF.groupunits[unit])..'Frames'](UF, frame, unit) -- arena and boss only
 	end
 
 	return frame
@@ -582,12 +582,11 @@ function UF:Update_AllFrames()
 	UF:Update_StatusBars()
 
 	for unit in pairs(UF.units) do
+		UF[unit]:Update()
 		if UF.db.units[unit].enable then
-			UF[unit]:Update()
 			UF[unit]:Enable()
 			E:EnableMover(UF[unit].mover:GetName())
 		else
-			UF[unit]:Update()
 			UF[unit]:Disable()
 			E:DisableMover(UF[unit].mover:GetName())
 		end
@@ -890,8 +889,18 @@ function UF.headerPrototype:Reset()
 	self:Hide()
 end
 
+function UF:SetMaxAllowedGroups()
+	if UF.db.maxAllowedGroups then
+		local _, instanceType, difficultyID = GetInstanceInfo()
+		UF.maxAllowedGroups = (difficultyID == 16 and 4) or (instanceType == 'raid' and 6) or 8
+	else
+		UF.maxAllowedGroups = 8
+	end
+end
+
 function UF:PLAYER_ENTERING_WORLD(_, initLogin, isReload)
 	UF:RegisterRaidDebuffIndicator()
+	UF:SetMaxAllowedGroups()
 
 	if initLogin then
 		UF:Update_AllFrames()
@@ -930,9 +939,9 @@ function UF:CreateAndUpdateHeaderGroup(group, groupFilter, template, headerTempl
 	local db = UF.db.units[group]
 	local Header = UF[group]
 
-	local numGroups = (group == 'party' and 1) or db.numGroups
-	local visibility = db.visibility
 	local enable = db.enable
+	local visibility = db.visibility
+	local numGroups = (group == 'party' and 1) or (db.numGroups and min(UF.maxAllowedGroups or 8, db.numGroups))
 	local name, isRaidFrames = E:StringTitle(group), strmatch(group, '^raid(%d)') and true
 
 	if not Header then
@@ -946,6 +955,7 @@ function UF:CreateAndUpdateHeaderGroup(group, groupFilter, template, headerTempl
 			Header.template = Header.template or template
 			Header.headerTemplate = Header.headerTemplate or headerTemplate
 			Header.isRaidFrame = isRaidFrames
+			Header.raidFrameN = isRaidFrames and gsub(group, '.-(%d)', '%1')
 			if not UF.headerFunctions[group] then UF.headerFunctions[group] = {} end
 			for k, v in pairs(self.groupPrototype) do
 				UF.headerFunctions[group][k] = v
@@ -1580,6 +1590,7 @@ function UF:Initialize()
 
 	UF:UpdateColors()
 	UF:RegisterEvent('PLAYER_ENTERING_WORLD')
+	UF:RegisterEvent('ZONE_CHANGED_NEW_AREA', 'SetMaxAllowedGroups')
 	UF:RegisterEvent('PLAYER_TARGET_CHANGED')
 	UF:RegisterEvent('PLAYER_FOCUS_CHANGED')
 
