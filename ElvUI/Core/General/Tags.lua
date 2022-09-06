@@ -317,6 +317,15 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 		return E:GetFormattedText("PERCENT", min, UnitPowerMax(unit, powerType), 0)
 	end)
 
+	E:AddTag(format('health:percent:hidedead', tagFormat), 'UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION PLAYER_FLAGS_CHANGED', function(unit)
+		local min, max = UnitHealth(unit), UnitHealthMax(unit)
+		if (min == 0) or (UnitIsGhost(unit)) or (not UnitIsConnected(unit) or UnitIsAFK(unit)) then
+			return ""
+		else
+			return E:GetFormattedText("PERCENT", min, max, 0)
+		end
+	end)
+
 	E:AddTag(format('additionalmana:%s', tagFormat), 'UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER', function(unit)
 		local barIndex = _G.ADDITIONAL_POWER_BAR_INDEX == 0 and _G.ALT_MANA_BAR_PAIR_DISPLAY_INFO[E.myclass]
 		if barIndex and barIndex[UnitPowerType(unit)] then
