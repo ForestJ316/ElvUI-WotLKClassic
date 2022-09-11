@@ -1251,6 +1251,7 @@ local UF_AuraBars = {
 	yOffset = 0,
 	clickThrough = false,
 	reverseFill = false,
+	abbrevName = false,
 }
 
 local UF_AuraWatch = {
@@ -2018,6 +2019,7 @@ P.unitframe = {
 			disableTargetGlow = false,
 			disableFocusGlow = false,
 			buffIndicator = CopyTable(UF_AuraWatch),
+			CombatIcon = CopyTable(UF_CombatIcon),
 			buffs = CopyTable(UF_Auras),
 			castbar = CopyTable(UF_Castbar),
 			classbar = CopyTable(UF_ClassBar),
@@ -2391,16 +2393,16 @@ end
 P.cooldown = {
 	threshold = 3,
 	roundTime = true,
+	targetAura = true,
 	hideBlizzard = false,
 	useIndicatorColor = false,
-	modRateColor = { r = 0.6, g = 1, b = 0.4 },
+
 	expiringColor = { r = 1, g = 0.2, b = 0.2 },
 	secondsColor = { r = 1, g = 1, b = 0.2 },
 	minutesColor = { r = 1, g = 1, b = 1 },
 	hoursColor = { r = 0.4, g = 1, b = 1 },
 	daysColor = { r = 0.4, g = 0.4, b = 1 },
 
-	modRateIndicator = { r = 0.8, g = 0.8, b = 0.8 },
 	expireIndicator = { r = 0.8, g = 0.8, b = 0.8 },
 	secondsIndicator = { r = 0.8, g = 0.8, b = 0.8 },
 	minutesIndicator = { r = 0.8, g = 0.8, b = 0.8 },
@@ -2410,6 +2412,8 @@ P.cooldown = {
 	mmssColorIndicator = { r = 1, g = 1, b = 1 },
 
 	checkSeconds = false,
+	targetAuraDuration = 3600,
+	modRateColor = { r = 0.6, g = 1, b = 0.4 },
 	hhmmColor = { r = 0.43, g = 0.43, b = 0.43 },
 	mmssColor = { r = 0.56, g = 0.56, b = 0.56 },
 	hhmmThreshold = -1,
@@ -2652,7 +2656,7 @@ end
 if E.Retail then
 	P.actionbar.bar1.paging.DRUID = '[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 8; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;'
 else
-	P.actionbar.bar1.paging.DRUID = '[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 8; [bonusbar:2] 10; [bonusbar:3] 9; [bonusbar:4] 10; [bonusbar:5] 10;'
+	P.actionbar.bar1.paging.DRUID = '[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 8; [bonusbar:2] 10; [bonusbar:3] 9; [bonusbar:4] 10;'
 	P.actionbar.bar1.paging.PRIEST = '[bonusbar:1] 7;'
 	P.actionbar.bar1.paging.WARRIOR = '[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;'
 end
@@ -2676,6 +2680,12 @@ do -- cooldown stuff
 	P.actionbar.cooldown.secondsColor = { r = 1, g = 1, b = 1 }
 	P.actionbar.cooldown.hoursColor = { r = 1, g = 1, b = 1 }
 	P.actionbar.cooldown.daysColor = { r = 1, g = 1, b = 1 }
+
+	P.actionbar.cooldown.targetAuraColor = { r = 1, g = 0.6, b = 0.1 }
+	P.actionbar.cooldown.expiringAuraColor = { r = 1, g = 0.4, b = 0.1 }
+
+	P.actionbar.cooldown.targetAuraIndicator = { r = 0.6, g = 0.6, b = 0.6 }
+	P.actionbar.cooldown.expiringAuraIndicator = { r = 0.6, g = 0.6, b = 0.6 }
 
 	P.auras.cooldown = CopyTable(P.actionbar.cooldown)
 	P.bags.cooldown = CopyTable(P.actionbar.cooldown)
