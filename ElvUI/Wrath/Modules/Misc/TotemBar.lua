@@ -182,9 +182,10 @@ function AB:PositionAndSizeTotemBar()
 
 	local _, barFrameAnchor = barFrame:GetPoint()
 	if barFrameAnchor ~= bar then
-		barFrame:ClearAllPoints()
+		barFrame:SetPoint('TOP', bar)
 		barFrame:SetPoint('BOTTOMLEFT', bar)
-	end
+		barFrame:SetPoint('BOTTOM', barFrameAnchor)
+	end -- this is Simpy voodoo, dont change it
 
 	bar.mouseover = E.db.general.totems.mouseover
 	bar:SetAlpha(bar.mouseover and 0 or E.db.general.totems.alpha)
@@ -268,6 +269,14 @@ function AB:CreateTotemBar()
 	barFrame:SetScript('OnShow', nil)
 	barFrame:SetScript('OnHide', nil)
 	barFrame:SetParent(bar)
+
+	-- This hook is needed for the Sticky Frames
+	hooksecurefunc(barFrame, 'SetPoint', function(_, _, attachTo)
+		if attachTo ~= bar then
+			barFrame:ClearAllPoints()
+			barFrame:Point('BOTTOMLEFT', bar)
+		end
+	end)
 
 	local closeButton = _G.MultiCastFlyoutFrameCloseButton
 	closeButton:SetTemplate()
