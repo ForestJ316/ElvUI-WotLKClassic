@@ -154,12 +154,10 @@ L["Bag 2"] = "Сумка 2"
 L["Bag 3"] = "Сумка 3"
 L["Bag 4"] ="Сумка 4"
 L["Bag Assignment"] = "Назначение сумок"
-L["Bag Bar"] = true
 L["Bag Spacing"] = "Отступ сумок"
 L["BAG_FILTER_CONSUMABLES"] = "расходуемые"
 L["BAG_FILTER_EQUIPMENT"] = "снаряжение"
 L["BAG_FILTER_TRADE_GOODS"] = "хозяйственные товары"
-L["Bag-Bar"] = "Панель сумок"
 L["Bags Only"] = "Только в сумках"
 L["Bags/Bank"] = "Сумки/Банк"
 L["Bank 1"] = "Банк 1"
@@ -238,7 +236,6 @@ L["Can Not Attack"] = "Нельзя атаковать"
 L["Cart / Flag / Orb / Assassin Bounty"] = "Тележка / Флаг / Сфера / Убить этого гада"
 L["Cast Bar"] = "Полоса заклинаний"
 L["Cast Time Format"] = "Формат времени заклинания"
-L["Castbar"] = "Полоса заклинаний"
 L["Casted by Player Only"] = "Принадлежащее вам."
 L["Casting"] = "Заклинания"
 L["Center"] = "Центр"
@@ -1808,13 +1805,7 @@ L["SKINS_DESC"] = "Установки скинов"
 L["TOGGLESKIN_DESC"] = "Включить/выключить этот скин."
 L["TOOLTIP_DESC"] = "Опций подсказки"
 L["UNITFRAME_DESC"] = "Изменение настроек рамок юнитов."
-L["VISIBILITY_DESC"] = [=[Следующий фильтр должен быть верен для отображения группы в дополнение к любому другому уже установленному фильтру.
-
-|cffff8000Defaults:|r
-    Party: [@raid6,exists][nogroup] hide;show
-    Raid: [@raid6,noexists][@raid26,exists] hide;show
-    Raid40: [@raid26,noexists] hide;show]
-    Raid Pet: [group:raid] show; hide]=]
+L["VISIBILITY_DESC"] = "Следующий фильтр должен быть верен для отображения группы в дополнение к любому другому уже установленному фильтру."
 L["SEARCH_SYNTAX_DESC"] = [=[С добавлением библиотеки LibItemSearch, у Вас появился доступ к большему количеству поисковых запросов. Здесь представлена документация по синтаксису поисковых запросов. Полная инструкция доступна по адресу: https://github.com/Jaliborc/LibItemSearch-1.2/wiki/Search-Syntax.
 
 Специфический поиск:
