@@ -1508,16 +1508,17 @@ function B:ConstructContainerFrame(name, isBank)
 
 		holder:SetTemplate(B.db.transparent and 'Transparent', true)
 		holder:StyleButton()
-		holder:SetNormalTexture('')
-		holder:SetPushedTexture('')
+
+		holder:SetNormalTexture()
+		holder:SetPushedTexture()
+		if holder.SetCheckedTexture then
+			holder:SetCheckedTexture()
+		end
+
 		holder:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 		holder:SetScript('OnEnter', B.Holder_OnEnter)
 		holder:SetScript('OnLeave', B.Holder_OnLeave)
 		holder:SetScript('OnClick', B.Holder_OnClick)
-
-		if not E.Retail then
-			holder:SetCheckedTexture('')
-		end
 
 		if holder.animIcon then
 			holder.animIcon:SetTexCoord(unpack(E.TexCoords))
@@ -1888,11 +1889,11 @@ function B:ConstructContainerButton(f, bagID, slotID)
 	slot:SetScript('OnEvent', B.Slot_OnEvent)
 	slot:HookScript('OnEnter', B.Slot_OnEnter)
 	slot:HookScript('OnLeave', B.Slot_OnLeave)
-	slot:SetNormalTexture(nil)
 	slot:SetID(slotID)
 
-	if not E.Retail then
-		slot:SetCheckedTexture(nil)
+	slot:SetNormalTexture()
+	if slot.SetCheckedTexture then
+		slot:SetCheckedTexture()
 	end
 
 	slot.bagFrame = f
@@ -2203,6 +2204,10 @@ function B:OpenBank()
 	B.BankFrame:Show()
 	_G.BankFrame:Show()
 
+	-- allow opening reagent tab directly by holding Shift
+	-- keep this over update slots for bank slot assignments
+	B:ShowBankTab(B.BankFrame, IsShiftKeyDown())
+
 	if B.BankFrame.firstOpen then
 		B:UpdateAllSlots(B.BankFrame)
 		B.BankFrame.firstOpen = nil
@@ -2220,9 +2225,6 @@ function B:OpenBank()
 			B.BankFrame.staleBags[bagID] = nil
 		end
 	end
-
-	--Allow opening reagent tab directly by holding Shift
-	B:ShowBankTab(B.BankFrame, IsShiftKeyDown())
 
 	if B.db.autoToggle.bank then
 		B:OpenBags()
