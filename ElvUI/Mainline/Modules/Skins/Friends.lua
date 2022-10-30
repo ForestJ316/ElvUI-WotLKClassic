@@ -15,9 +15,8 @@ local FriendsFrame_GetInviteRestriction = FriendsFrame_GetInviteRestriction
 local function SkinSocialHeaderTab(tab)
 	if not tab then return end
 
-	tab.backdrop = CreateFrame('Frame', nil, tab)
-	tab.backdrop:SetTemplate('Transparent')
-	tab.backdrop:SetFrameLevel(tab:GetFrameLevel() - 1)
+	tab:StripTextures()
+	tab:CreateBackdrop('Transparent')
 	tab.backdrop:Point('TOPLEFT', 3, -8)
 	tab.backdrop:Point('BOTTOMRIGHT', -6, 0)
 end
@@ -259,13 +258,19 @@ function S:FriendsFrame()
 
 	S:HandleDropDownBox(_G.WhoFrameDropDown, 120)
 
-	--Bottom Tabs
+	-- Bottom Tabs
 	for i = 1, 4 do
 		local tab = _G['FriendsFrameTab'..i]
 		if tab then
 			S:HandleTab(tab)
 		end
 	end
+
+	-- Reposition Tabs
+	_G.FriendsFrameTab1:SetPoint('BOTTOMLEFT', _G.FriendsFrame, 'BOTTOMLEFT', -3, -32)
+	_G.FriendsFrameTab2:SetPoint('TOPLEFT', _G.FriendsFrameTab1, 'TOPRIGHT', -5, 0)
+	_G.FriendsFrameTab3:SetPoint('TOPLEFT', _G.FriendsFrameTab2, 'TOPRIGHT', -5, 0)
+	_G.FriendsFrameTab4:SetPoint('TOPLEFT', _G.FriendsFrameTab3, 'TOPRIGHT', -5, 0)
 
 	for i = 1, 3 do
 		local tab = _G['FriendsTabHeaderTab'..i]

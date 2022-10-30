@@ -9,6 +9,7 @@ local sort = sort
 local floor = floor
 local tinsert = tinsert
 local unpack = unpack
+local hooksecurefunc = hooksecurefunc
 local utf8sub = string.utf8sub
 
 local CloseAllWindows = CloseAllWindows
@@ -26,7 +27,7 @@ local ShowUIPanel = ShowUIPanel
 local ToggleFrame = ToggleFrame
 local UIParentLoadAddOn = UIParentLoadAddOn
 
-local hooksecurefunc = hooksecurefunc
+local MainMenuMicroButton = MainMenuMicroButton
 local MainMenuMicroButton_SetNormal = MainMenuMicroButton_SetNormal
 local Garrison_OnClick = GarrisonLandingPageMinimapButton_OnClick
 
@@ -50,7 +51,7 @@ local menuList = {
 
 if E.Retail then
 	tinsert(menuList, { text = _G.LFG_TITLE, func = _G.ToggleLFDParentFrame })
-elseif E.TBC or E.Wrath then
+elseif E.Wrath then
 	tinsert(menuList, { text = _G.LFG_TITLE, func = function() if not IsAddOnLoaded('Blizzard_LookingForGroupUI') then UIParentLoadAddOn('Blizzard_LookingForGroupUI') end _G.ToggleLFGParentFrame() end })
 end
 
@@ -80,12 +81,14 @@ sort(menuList, function(a, b) if a and b and a.text and b.text then return a.tex
 tinsert(menuList, { text = _G.MAINMENU_BUTTON,
 	func = function()
 		if not _G.GameMenuFrame:IsShown() then
-			if _G.VideoOptionsFrame:IsShown() then
-				_G.VideoOptionsFrameCancel:Click()
-			elseif _G.AudioOptionsFrame:IsShown() then
-				_G.AudioOptionsFrameCancel:Click()
-			elseif _G.InterfaceOptionsFrame:IsShown() then
-				_G.InterfaceOptionsFrameCancel:Click()
+			if not E.Retail then
+				if _G.VideoOptionsFrame:IsShown() then
+					_G.VideoOptionsFrameCancel:Click()
+				elseif _G.AudioOptionsFrame:IsShown() then
+					_G.AudioOptionsFrameCancel:Click()
+				elseif _G.InterfaceOptionsFrame:IsShown() then
+					_G.InterfaceOptionsFrameCancel:Click()
+				end
 			end
 
 			CloseMenus()
@@ -95,7 +98,12 @@ tinsert(menuList, { text = _G.MAINMENU_BUTTON,
 		else
 			PlaySound(854) --IG_MAINMENU_QUIT
 			HideUIPanel(_G.GameMenuFrame)
-			MainMenuMicroButton_SetNormal()
+
+			if E.Retail then
+				MainMenuMicroButton:SetButtonState('NORMAL')
+			else
+				MainMenuMicroButton_SetNormal()
+			end
 		end
 	end
 })
@@ -126,8 +134,25 @@ function M:HandleExpansionButton()
 	end
 end
 
+function M:HandleQueueButton(actionbarMode)
+	local queueButton = M:GetQueueStatusButton()
+	if not queueButton then return end
+
+	queueButton:SetParent(E.Retail and MinimapCluster or Minimap)
+	queueButton:ClearAllPoints()
+
+	if actionbarMode then
+		queueButton:Point('BOTTOMLEFT', Minimap, 50, -15)
+		M:SetScale(queueButton, 0.8)
+	else
+		local scale, position, xOffset, yOffset = M:GetIconSettings('lfgEye')
+		queueButton:Point(position, Minimap, xOffset, yOffset)
+		M:SetScale(queueButton, scale)
+	end
+end
+
 function M:HandleTrackingButton()
-local tracking = MinimapCluster.Tracking and MinimapCluster.Tracking.Button or _G.MiniMapTrackingFrame or _G.MiniMapTracking
+	local tracking = MinimapCluster.Tracking and MinimapCluster.Tracking.Button or _G.MiniMapTrackingFrame or _G.MiniMapTracking
 	if not tracking then return end
 
 	if E.private.general.minimap.hideTracking then
@@ -332,13 +357,13 @@ function M:UpdateSettings()
 
 	if E.Retail then
 		local offset = 1
+
+		MinimapCluster:SetScale(mmScale)
 		MinimapCluster:ClearAllPoints()
 
 		if E.db.general.minimap.clusterDisable then
-			MinimapCluster:SetScale(1)
 			MinimapCluster:Point('TOPRIGHT', _G.UIParent)
 		else
-			MinimapCluster:SetScale(mmScale)
 			MinimapCluster:Point('TOPRIGHT', M.ClusterHolder, 0, offset)
 		end
 
@@ -388,6 +413,8 @@ function M:UpdateSettings()
 		end
 	end
 
+	M:HandleQueueButton()
+
 	local difficulty = E.Retail and MinimapCluster.InstanceDifficulty
 	local instance = difficulty and difficulty.Instance or _G.MiniMapInstanceDifficulty
 	local guild = difficulty and difficulty.Guild or _G.GuildInstanceDifficulty
@@ -418,11 +445,10 @@ function M:UpdateSettings()
 				gameTime:Hide()
 			else
 				local scale, position, xOffset, yOffset = M:GetIconSettings('calendar')
+				gameTime:Show()
 				gameTime:ClearAllPoints()
 				gameTime:Point(position, Minimap, xOffset, yOffset)
-				gameTime:SetFrameLevel(holder:GetFrameLevel()+1)
 				M:SetScale(gameTime, scale)
-				gameTime:Show()
 			end
 		end
 
@@ -444,16 +470,6 @@ function M:UpdateSettings()
 			if _G.BattlegroundShine then _G.BattlegroundShine:Hide() end
 			if _G.MiniMapBattlefieldBorder then _G.MiniMapBattlefieldBorder:Hide() end
 			if _G.MiniMapBattlefieldIcon then _G.MiniMapBattlefieldIcon:SetTexCoord(unpack(E.TexCoords)) end
-		end
-
-		-- ToDO: WoW 10 (check position size)
-		local queueButton = M:GetQueueStatusButton()
-		if queueButton then
-			local scale, position, xOffset, yOffset = M:GetIconSettings('lfgEye')
-			queueButton:ClearAllPoints()
-			queueButton:Point(position, Minimap, xOffset, yOffset)
-			queueButton:SetParent(Minimap)
-			M:SetScale(queueButton, scale)
 		end
 
 		local queueDisplay = M.QueueStatusDisplay
@@ -574,12 +590,14 @@ function M:ClearQueueStatus()
 end
 
 function M:CreateQueueStatusText()
-	local display = CreateFrame('Frame', 'ElvUIQueueStatusDisplay', _G.QueueStatusMinimapButton)
+	local display = CreateFrame('Frame', 'ElvUIQueueStatusDisplay', _G.QueueStatusButton)
+	display:SetIgnoreParentScale(true)
+	display:SetScale(E.uiscale)
 	display.text = display:CreateFontString(nil, 'OVERLAY')
 
 	M.QueueStatusDisplay = display
 
-	_G.QueueStatusMinimapButton:HookScript('OnHide', M.ClearQueueStatus)
+	_G.QueueStatusButton:HookScript('OnHide', M.ClearQueueStatus)
 	hooksecurefunc('QueueStatusEntry_SetMinimalDisplay', M.SetMinimalQueueStatus)
 	hooksecurefunc('QueueStatusEntry_SetFullDisplay', M.SetFullQueueStatus)
 end
@@ -589,6 +607,11 @@ function M:Initialize()
 		Minimap:SetMaskTexture(E.Retail and 130937 or [[interface\chatframe\chatframebackground]])
 	else
 		Minimap:SetMaskTexture(E.Retail and 186178 or [[textures\minimapmask]])
+
+		if E.private.actionbar.enable then
+			M:HandleQueueButton(true)
+		end
+
 		return
 	end
 
@@ -602,16 +625,15 @@ function M:Initialize()
 	M.holder = holder
 	E:CreateMover(holder, 'MinimapMover', L["Minimap"], nil, nil, MinimapPostDrag, nil, nil, 'maps,minimap')
 
-	Minimap:CreateBackdrop()
-
-	local minimapLevel = Minimap:GetFrameLevel() + 2
-	Minimap:SetFrameLevel(minimapLevel)
-
-	if E.Retail then
-		MinimapCluster:SetFrameLevel(minimapLevel)
-		MinimapCluster:SetFrameStrata('MEDIUM')
-		Minimap:SetFrameStrata('LOW')
+	if E.Retail then -- set before minimap itself
+		MinimapCluster:SetFrameLevel(20)
+	elseif _G.GameTimeFrame then
+		_G.GameTimeFrame:SetFrameLevel(12)
 	end
+
+	Minimap:SetFrameStrata('LOW')
+	Minimap:SetFrameLevel(10)
+	Minimap:CreateBackdrop()
 
 	if Minimap.backdrop then -- level to hybrid maps fixed values
 		Minimap.backdrop:SetFrameLevel(99)
@@ -709,8 +731,7 @@ function M:Initialize()
 		M.TrackingDropdown = M:CreateMinimapTrackingDropdown()
 	end
 
-	if _G.QueueStatusMinimapButton then
-		_G.QueueStatusMinimapButtonBorder:Hide()
+	if _G.QueueStatusButton then
 		M:CreateQueueStatusText()
 	elseif _G.MiniMapLFGFrame then
 		(E.Wrath and _G.MiniMapLFGFrameBorder or _G.MiniMapLFGBorder):Hide()

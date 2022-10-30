@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ]]
 local MAJOR_VERSION = "LibActionButton-1.0-ElvUI"
-local MINOR_VERSION = 31 -- the real minor version is 89
+local MINOR_VERSION = 32 -- the real minor version is 89
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib, oldversion = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
@@ -182,6 +182,7 @@ function lib:CreateButton(id, name, header, config)
 	local AuraCooldown = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
 	AuraCooldown:SetDrawBling(false)
 	AuraCooldown:SetDrawSwipe(false)
+	AuraCooldown:SetDrawEdge(false)
 	button.AuraCooldown = AuraCooldown
 
 	-- Frame Scripts
@@ -1377,9 +1378,9 @@ function UpdateUsable(self)
 			end
 	end
 
-	if not WoWClassic and not WoWBCC and not WoWWrath and self._state_type == "action" then
+	if WoWRetail and self._state_type == "action" then
 		local isLevelLinkLocked = C_LevelLink.IsActionLocked(self._state_action)
-		if not self.icon:IsDesaturated() then
+		if not self.saturationLocked then
 			self.icon:SetDesaturated(isLevelLinkLocked)
 		end
 
@@ -1429,6 +1430,7 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration, chargeMo
 			cooldown = CreateFrame("Cooldown", "LAB10ChargeCooldown"..lib.NumChargeCooldowns, parent, "CooldownFrameTemplate");
 			cooldown:SetScript("OnCooldownDone", EndChargeCooldown)
 			cooldown:SetHideCountdownNumbers(true)
+			cooldown:SetDrawBling(false)
 			cooldown:SetDrawSwipe(false)
 
 			lib.callbacks:Fire("OnChargeCreated", parent, cooldown)
@@ -1442,8 +1444,8 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration, chargeMo
 		parent.chargeCooldown = cooldown
 		cooldown.parent = parent
 	end
+
 	-- set cooldown
-	parent.chargeCooldown:SetDrawBling(parent.chargeCooldown:GetEffectiveAlpha() > 0.5)
 	parent.chargeCooldown:SetCooldown(chargeStart, chargeDuration, chargeModRate)
 
 	-- update charge cooldown skin when masque is used
@@ -1460,16 +1462,23 @@ local function OnCooldownDone(self)
 	local button = self:GetParent()
 
 	self:SetScript("OnCooldownDone", nil)
+
+	lib.callbacks:Fire("OnCooldownDone", button, self)
+end
+
+local function LosCooldownDone(self)
+	local button = self:GetParent()
+
+	self:SetScript("OnCooldownDone", nil)
 	UpdateCooldown(button)
 
 	lib.callbacks:Fire("OnCooldownDone", button, self)
 end
 
 function UpdateCooldown(self)
-	local locStart, locDuration
-	local start, duration, enable, modRate
+	local locStart, locDuration, _
+	local start, duration, modRate, auraData
 	local charges, maxCharges, chargeStart, chargeDuration, chargeModRate
-	local auraData
 
 	local passiveCooldownSpellID = self:GetPassiveCooldownSpellID()
 	if passiveCooldownSpellID and passiveCooldownSpellID ~= 0 then
@@ -1491,22 +1500,22 @@ function UpdateCooldown(self)
 		chargeStart = currentTime * 0.001
 		chargeDuration = duration * 0.001
 		chargeModRate = modRate
-		enable = 1
 	else
 		locStart, locDuration = self:GetLossOfControlCooldown()
-		start, duration, enable, modRate = self:GetCooldown()
+		start, duration, _, modRate = self:GetCooldown()
 		charges, maxCharges, chargeStart, chargeDuration, chargeModRate = self:GetCharges()
 	end
 
-	self.cooldown:SetDrawBling(self.cooldown:GetEffectiveAlpha() > 0.5)
+	self.cooldown:SetDrawBling(self.config.useDrawBling and (self:GetEffectiveAlpha() > 0.5))
 
 	if (locStart + locDuration) > (start + duration) then
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_LOSS_OF_CONTROL then
 			self.cooldown:SetEdgeTexture("Interface\\Cooldown\\edge-LoC")
-			self.cooldown:SetSwipeColor(0.17, 0, 0)
+			self.cooldown:SetSwipeColor(0.2, 0, 0)
 			self.cooldown:SetHideCountdownNumbers(true)
 			self.cooldown.currentCooldownType = COOLDOWN_TYPE_LOSS_OF_CONTROL
 		end
+		self.cooldown:SetScript("OnCooldownDone", LosCooldownDone)
 		self.cooldown:SetCooldown(locStart, locDuration, modRate)
 		if self.chargeCooldown then
 			EndChargeCooldown(self.chargeCooldown)
@@ -1515,18 +1524,18 @@ function UpdateCooldown(self)
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_NORMAL then
 			self.cooldown:SetEdgeTexture("Interface\\Cooldown\\edge")
 			self.cooldown:SetSwipeColor(0, 0, 0)
-			self.cooldown:SetHideCountdownNumbers(false)
+			self.cooldown:SetHideCountdownNumbers(self.config.disableCountDownNumbers)
 			self.cooldown.currentCooldownType = COOLDOWN_TYPE_NORMAL
-		end
-		if locStart > 0 then
-			self.cooldown:SetScript("OnCooldownDone", OnCooldownDone)
 		end
 
 		if charges and maxCharges and maxCharges > 1 and charges < maxCharges then
 			StartChargeCooldown(self, chargeStart, chargeDuration, chargeModRate)
+
+			self.chargeCooldown:SetDrawSwipe(self.config.useDrawSwipeOnCharges)
 		elseif self.chargeCooldown then
 			EndChargeCooldown(self.chargeCooldown)
 		end
+		self.cooldown:SetScript("OnCooldownDone", OnCooldownDone)
 		self.cooldown:SetCooldown(start, duration, modRate)
 	end
 
@@ -1556,6 +1565,7 @@ end
 function UpdateTooltip(self)
 	if GameTooltip:IsForbidden() then return end
 	if (GetCVar("UberTooltips") == "1") then
+		GameTooltip:ClearAllPoints();
 		GameTooltip_SetDefaultAnchor(GameTooltip, self);
 	else
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT");

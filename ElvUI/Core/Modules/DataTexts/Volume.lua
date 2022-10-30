@@ -33,7 +33,7 @@ local Sound_CVars = {
 
 local AudioStreams = {
 	{ Name = _G.MASTER, Volume = 'Sound_MasterVolume', Enabled = 'Sound_EnableAllSound' },
-	{ Name = _G.SOUND_VOLUME, Volume = 'Sound_SFXVolume', Enabled = 'Sound_EnableSFX' },
+	{ Name = _G.SOUND_VOLUME or _G.FX_VOLUME, Volume = 'Sound_SFXVolume', Enabled = 'Sound_EnableSFX' },
 	{ Name = _G.AMBIENCE_VOLUME, Volume = 'Sound_AmbienceVolume', Enabled = 'Sound_EnableAmbience' },
 	{ Name = _G.DIALOG_VOLUME, Volume = 'Sound_DialogVolume', Enabled = 'Sound_EnableDialog' },
 	{ Name = _G.MUSIC_VOLUME, Volume = 'Sound_MusicVolume', Enabled = 'Sound_EnableMusic' }
@@ -144,7 +144,11 @@ end
 local function OnClick(self, button)
 	if button == 'LeftButton' then
 		if IsShiftKeyDown() then
-			ShowOptionsPanel(_G.VideoOptionsFrame, _G.GameMenuFrame, SOUND)
+			if E.Retail then
+				_G.Settings.OpenToCategory(_G.Settings.AUDIO_CATEGORY_ID)
+			else
+				ShowOptionsPanel(_G.VideoOptionsFrame, _G.GameMenuFrame, SOUND)
+			end
 			return
 		end
 
