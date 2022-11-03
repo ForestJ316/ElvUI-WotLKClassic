@@ -357,9 +357,12 @@ function S:LookingForGroupFrames()
 	end
 
 	-- Reposition Tabs
-	_G.PVEFrameTab1:SetPoint('BOTTOMLEFT', _G.PVEFrame, 'BOTTOMLEFT', -3, -32)
-	_G.PVEFrameTab2:SetPoint('TOPLEFT', _G.PVEFrameTab1, 'TOPRIGHT', -5, 0)
-	_G.PVEFrameTab3:SetPoint('TOPLEFT', _G.PVEFrameTab2, 'TOPRIGHT', -5, 0)
+	_G.PVEFrameTab1:ClearAllPoints()
+	_G.PVEFrameTab2:ClearAllPoints()
+	_G.PVEFrameTab3:ClearAllPoints()
+	_G.PVEFrameTab1:Point('BOTTOMLEFT', _G.PVEFrame, 'BOTTOMLEFT', -3, -32)
+	_G.PVEFrameTab2:Point('TOPLEFT', _G.PVEFrameTab1, 'TOPRIGHT', -5, 0)
+	_G.PVEFrameTab3:Point('TOPLEFT', _G.PVEFrameTab2, 'TOPRIGHT', -5, 0)
 
 	-- Raid finder
 	S:HandleButton(_G.LFDQueueFrameFindGroupButton)
@@ -667,6 +670,8 @@ function S:LookingForGroupFrames()
 	LFGListFrame.ApplicationViewer.BrowseGroupsButton:ClearAllPoints()
 	LFGListFrame.ApplicationViewer.BrowseGroupsButton:Point('BOTTOMLEFT', -1, 3)
 	LFGListFrame.ApplicationViewer.BrowseGroupsButton:Size(120, 22)
+
+	S:HandleTrimScrollBar(LFGListFrame.ApplicationViewer.ScrollBar)
 
 	hooksecurefunc('LFGListApplicationViewer_UpdateInfo', function(frame)
 		frame.RemoveEntryButton:ClearAllPoints()
