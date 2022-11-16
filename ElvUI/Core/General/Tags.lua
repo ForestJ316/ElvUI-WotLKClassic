@@ -360,7 +360,7 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 				return status
 			else
 				local min, max = UnitHealth(unit), UnitHealthMax(unit)
-				return E:GetFormattedText(textFormat, min, max, nil, true)
+				return E:GetFormattedText(textFormat, min, max, 1, true)
 			end
 		end)
 
@@ -373,7 +373,7 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 			local powerType = UnitPowerType(unit)
 			local min = UnitPower(unit, powerType)
 			if (min ~= 0 or powerType == 6) and tagFormat ~= 'deficit' then
-				return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, powerType), nil, true)
+				return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, powerType), 1, true)
 			end
 		end)
 
@@ -492,7 +492,7 @@ end)
 E:AddTag('health:max:shortvalue', 'UNIT_MAXHEALTH', function(unit)
 	local _, max = UnitHealth(unit), UnitHealthMax(unit)
 
-	return E:GetFormattedText('CURRENT', max, max, nil, true)
+	return E:GetFormattedText('CURRENT', max, max, 1, true)
 end)
 
 E:AddTag('absorbs', 'UNIT_ABSORB_AMOUNT_CHANGED', function(unit)
@@ -540,7 +540,7 @@ E:AddTag('power:max:shortvalue', 'UNIT_DISPLAYPOWER UNIT_MAXPOWER', function(uni
 	local pType = UnitPowerType(unit)
 	local max = UnitPowerMax(unit, pType)
 
-	return E:GetFormattedText('CURRENT', max, max, nil, true)
+	return E:GetFormattedText('CURRENT', max, max, 1, true)
 end)
 
 E:AddTag('mana:max:shortvalue', 'UNIT_MAXPOWER', function(unit)

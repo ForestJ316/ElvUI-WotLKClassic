@@ -59,7 +59,11 @@ function E:ShortValue(value, dec)
 			if abs(value) >= 1e9 then
 				return format("%.3f%s", value / 1000000000, "B")
 			elseif abs(value) >= 1e6 then
-				return format("%.2f%s", value / 1000000, "M")
+				if decimal then
+					return format(decimal.."%s", value / 1000000, "M")
+				else
+					return format("%.2f%s", value / 1000000, "M")
+				end
 			elseif abs(value) >= 1e5 then
 				return format("%.1f%s", value / 1000, "K")
 			else
