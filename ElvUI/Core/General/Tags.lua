@@ -366,7 +366,7 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 
 		E:AddTag(format('health:%s-nostatus:shortvalue', tagFormat), 'UNIT_HEALTH UNIT_MAXHEALTH', function(unit)
 			local min, max = UnitHealth(unit), UnitHealthMax(unit)
-			return E:GetFormattedText(textFormat, min, max, nil, true)
+			return E:GetFormattedText(textFormat, min, max, 1, true)
 		end)
 
 		E:AddTag(format('power:%s:shortvalue', tagFormat), 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
