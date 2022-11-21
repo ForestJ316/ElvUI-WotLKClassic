@@ -1,7 +1,7 @@
 -- License: LICENSE.txt
 
 local MAJOR_VERSION = "LibActionButton-1.0-ElvUI"
-local MINOR_VERSION = 33 -- the real minor version is 100
+local MINOR_VERSION = 35 -- the real minor version is 100
 
 local LibStub = LibStub
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
@@ -305,32 +305,7 @@ function SetupSecureSnippets(button)
 			self:SetAttribute(action_field, action)
 			self:SetAttribute("action_field", action_field)
 		end
-		if IsPressHoldReleaseSpell then
-			local pressAndHold = false
-			if type == "action" then
-				self:SetAttribute("typerelease", "actionrelease")
-				local actionType, id = GetActionInfo(action)
-				if actionType == "spell" then
-					pressAndHold = IsPressHoldReleaseSpell(id)
-				elseif actionType == "macro" then
-					-- GetMacroSpell is not in the restricted environment
-					--[=[
-						local spellID = GetMacroSpell(id)
-						if spellID then
-							pressAndHold = IsPressHoldReleaseSpell(spellID)
-						end
-					]=]
-				end
-			elseif type == "spell" then
-				self:SetAttribute("typerelease", nil)
-				-- XXX: while we can query this attribute, there is no corresponding action to release a spell button, only "actionrelease" exists
-				pressAndHold = IsPressHoldReleaseSpell(action)
-			else
-				self:SetAttribute("typerelease", nil)
-			end
 
-			self:SetAttribute("pressAndHoldAction", pressAndHold)
-		end
 		local onStateChanged = self:GetAttribute("OnStateChanged")
 		if onStateChanged then
 			self:Run(onStateChanged, state, type, action)
@@ -475,23 +450,36 @@ function WrapOnClick(button)
 	]])
 end
 
-function Generic:OnButtonEvent(event, key, down)
-	if event == "GLOBAL_MOUSE_UP" then
-		self:SetButtonState("NORMAL")
-		self:UnregisterEvent(event)
+-- Dynamically handle release casting ~Simpy
+local function UpdateReleaseCasting(self, down)
+	if down then -- being locked, prevents mod key clicks on up because of SecureActionButton_OnClick in retail
+		self:RegisterForClicks('AnyUp')
+	elseif not self.pressReleaseAction then
+		self:RegisterForClicks(self.config.clickOnDown and 'AnyDown' or 'AnyUp')
+	elseif GetCVar('empowerTapControls') == '0' then
+		self:RegisterForClicks('AnyDown', 'AnyUp')
+	else
+		self:RegisterForClicks('AnyDown')
 	end
+end
 
-	-- prevent pickup calling spells ~Simpy
-	if GetCVarBool('lockActionBars') then
-		if event == 'OnLeave' then
-			self:RegisterForClicks('AnyDown')
-		elseif event == 'OnEnter' then
-			local action = GetModifiedClick('PICKUPACTION')
-			local isDragKeyDown = action == 'SHIFT' and IsShiftKeyDown() or action == 'ALT' and IsAltKeyDown() or action == 'CTRL' and IsControlKeyDown()
-			self:RegisterForClicks(isDragKeyDown and 'AnyUp' or 'AnyDown')
-		elseif event == 'MODIFIER_STATE_CHANGED' and GetModifiedClick('PICKUPACTION') == strsub(key, 2) then
-			self:RegisterForClicks(down == 1 and 'AnyUp' or 'AnyDown')
+-- prevent pickup calling spells ~Simpy
+function Generic:OnButtonEvent(event, key, down)
+	if not GetCVarBool('lockActionBars') then return end -- not locked
+
+	local clickDown = self.config.clickOnDown or self.pressReleaseAction
+	if not clickDown then return end -- not key downing
+
+	if event == 'MODIFIER_STATE_CHANGED' then
+		if GetModifiedClick('PICKUPACTION') == strsub(key, 2) then
+			UpdateReleaseCasting(self, down == 1)
 		end
+	elseif event == 'OnEnter' then
+		local action = GetModifiedClick('PICKUPACTION')
+		local dragDown = action == 'SHIFT' and IsShiftKeyDown() or action == 'ALT' and IsAltKeyDown() or action == 'CTRL' and IsControlKeyDown()
+		UpdateReleaseCasting(self, dragDown)
+	elseif event == 'OnLeave' then
+		UpdateReleaseCasting(self, not clickDown)
 	end
 end
 
@@ -670,20 +658,17 @@ function Generic:OnEnter()
 		UpdateNewAction(self)
 	end
 
-	if self.config.clickOnDown then
-		Generic.OnButtonEvent(self, 'OnEnter')
-		self:RegisterEvent('MODIFIER_STATE_CHANGED')
-	end
+	Generic.OnButtonEvent(self, 'OnEnter')
+	self:RegisterEvent('MODIFIER_STATE_CHANGED')
 end
 
 function Generic:OnLeave()
-	if GameTooltip:IsForbidden() then return end
-	GameTooltip:Hide()
-
-	if self.config.clickOnDown then
-		Generic.OnButtonEvent(self, 'OnLeave')
-		self:UnregisterEvent('MODIFIER_STATE_CHANGED')
+	if not GameTooltip:IsForbidden() then
+		GameTooltip:Hide()
 	end
+
+	Generic.OnButtonEvent(self, 'OnLeave')
+	self:UnregisterEvent('MODIFIER_STATE_CHANGED')
 end
 
 -- Insecure drag handler to allow clicking on the button with an action on the cursor
@@ -735,10 +720,6 @@ function Generic:PostClick(button, down)
 
 	if self._state_type == "action" and lib.ACTION_HIGHLIGHT_MARKS[self._state_action] then
 		ClearNewActionHighlight(self._state_action, false, false)
-	end
-
-	if down and button ~= "Keybind" then
-		self:RegisterEvent("GLOBAL_MOUSE_UP")
 	end
 end
 
@@ -818,8 +799,6 @@ function Generic:UpdateConfig(config)
 	UpdateHotkeys(self)
 	UpdateGrid(self)
 	Update(self, true)
-
-	self:RegisterForClicks(self.config.clickOnDown and "AnyDown" or "AnyUp")
 end
 
 -----------------------------------------------------------
@@ -1254,13 +1233,13 @@ end
 --- button management
 
 function Generic:UpdateAction(force)
-	local action_type, action = self:GetAction()
-	if force or action_type ~= self._state_type or action ~= self._state_action then
+	local actionType, action = self:GetAction()
+	if force or actionType ~= self._state_type or action ~= self._state_action then
 		-- type changed, update the metatable
-		if force or self._state_type ~= action_type then
-			local meta = type_meta_map[action_type] or type_meta_map.empty
+		if force or self._state_type ~= actionType then
+			local meta = type_meta_map[actionType] or type_meta_map.empty
 			setmetatable(self, meta)
-			self._state_type = action_type
+			self._state_type = actionType
 		end
 		self._state_action = action
 		Update(self)
@@ -1316,16 +1295,12 @@ function Update(self, fromUpdateConfig)
 		self.Name:SetText("")
 	end
 
-	-- Update icon and hotkey
-	local texture = self:GetTexture()
-
 	-- Target Aura ~Simpy
 	local previousAbility = AuraButtons.buttons[self]
 	if previousAbility then
 		AuraButtons.buttons[self] = nil
 
 		local auras = AuraButtons.auras[previousAbility]
-
 		for i, button in next, auras do
 			if button == self then
 				tremove(auras, i)
@@ -1338,26 +1313,44 @@ function Update(self, fromUpdateConfig)
 		end
 	end
 
-	if self._state_type == "action" then
-		local action_type, id = GetActionInfo(self._state_action)
-		local abilityName = GetSpellInfo(id)
-		self.abilityName = abilityName
+	local notInCombat = not InCombatLockdown()
+	local isTypeAction = self._state_type == 'action'
+	local updatePressRelease = IsPressHoldReleaseSpell and notInCombat
+	if isTypeAction then
+		local actionType, actionID = GetActionInfo(self._state_action)
+		local actionSpell, actionMacro = actionType == 'spell', actionType == 'macro'
+		local macroSpell = actionMacro and GetMacroSpell(actionID) or nil
+		local spellID = (actionSpell and actionID) or macroSpell
+		local spellName = spellID and GetSpellInfo(spellID) or nil
 
-		AuraButtons.buttons[self] = abilityName
+		if updatePressRelease then
+			local pressRelease = IsPressHoldReleaseSpell(spellID)
+			self.pressReleaseAction = pressRelease
+			self:SetAttribute('pressAndHoldAction', pressRelease)
+			self:SetAttribute('typerelease', 'actionrelease')
+		end
 
-		if abilityName then
-			if not AuraButtons.auras[abilityName] then
-				AuraButtons.auras[abilityName] = {}
+		self.abilityName = spellName
+		AuraButtons.buttons[self] = spellName
+
+		if spellName then
+			if not AuraButtons.auras[spellName] then
+				AuraButtons.auras[spellName] = {}
 			end
 
-			tinsert(AuraButtons.auras[abilityName], self)
+			tinsert(AuraButtons.auras[spellName], self)
+		end
+	else
+		self.abilityName = nil
 
-			local baseName = (action_type == "spell" or action_type == "companion") and _G.ZoneAbilityFrame and _G.ZoneAbilityFrame.baseName
-			if baseName and not HasZoneAbility() and (abilityName == GetSpellInfo(baseName)) then
-				texture = GetLastZoneAbilitySpellTexture()
-			end
+		if updatePressRelease then
+			self.pressReleaseAction = nil
+			self:SetAttribute('typerelease', nil)
 		end
 	end
+
+	-- Update icon and hotkey
+	local texture = self:GetTexture()
 
 	if texture then
 		self.icon:SetTexture(texture)
@@ -1428,12 +1421,14 @@ function Update(self, fromUpdateConfig)
 
 	UpdateSpellHighlight(self)
 
+	UpdateReleaseCasting(self)
+
 	if GameTooltip_GetOwnerForbidden() == self then
 		UpdateTooltip(self)
 	end
 
 	-- this could've been a spec change, need to call OnStateChanged for action buttons, if present
-	if not InCombatLockdown() and self._state_type == "action" then
+	if notInCombat and isTypeAction then
 		local onStateChanged = self:GetAttribute("OnStateChanged")
 		if onStateChanged then
 			self.header:SetFrameRef("updateButton", self)
@@ -1443,6 +1438,7 @@ function Update(self, fromUpdateConfig)
 			]]):format(formatHelper(self:GetAttribute("state")), formatHelper(self._state_type), formatHelper(self._state_action)))
 		end
 	end
+
 	lib.callbacks:Fire("OnButtonUpdate", self)
 end
 
