@@ -170,6 +170,7 @@ G.unitframe.aurafilters.TurtleBuffs = {
 	type = 'Whitelist',
 	spells = {
 	-- Evoker
+		[378464]	= List(), -- Nullifying Shroud (PvP)
 		[363916]	= List(), -- Obsidian Scales
 		[374348]	= List(), -- Renewing Blaze
 	-- Death Knight
@@ -1062,8 +1063,11 @@ G.unitframe.aurawatch = {
 	GLOBAL = {},
 	EVOKER = {
 		[355941]	= Aura(355941, nil, 'TOPRIGHT', {0.33, 0.33, 0.77}), -- Dream Breath
+		[376788]	= Aura(376788, nil, 'TOPRIGHT', {0.25, 0.25, 0.58}, nil, nil, nil, nil, -20), -- Dream Breath (echo)
 		[363502]	= Aura(363502, nil, 'BOTTOMLEFT', {0.33, 0.33, 0.70}), -- Dream Flight
-		[366155]	= Aura(366155, nil, 'RIGHT', {0.14, 1.00, 0.88}), -- Reversion
+		[366155]	= Aura(366155, nil, 'BOTTOMRIGHT', {0.14, 1.00, 0.88}), -- Reversion
+		[367364]	= Aura(367364, nil, 'BOTTOMRIGHT', {0.09, 0.69, 0.61}, nil, nil, nil, nil, -20), -- Reversion (echo)
+		[373267]	= Aura(373267, nil, 'RIGHT', {0.82, 0.29, 0.24}), -- Life Bind (Verdant Embrace)
 		[364343]	= Aura(364343, nil, 'TOP', {0.13, 0.87, 0.50}), -- Echo
 		[357170]	= Aura(357170, nil, 'BOTTOM', {0.11, 0.57, 0.71}), -- Time Dilation
 	},
@@ -1117,7 +1121,8 @@ G.unitframe.aurawatch = {
 	},
 	SHAMAN = {
 		[61295]		= Aura(61295, nil, 'TOPRIGHT', {0.7, 0.3, 0.7}), -- Riptide
-		[974]		= Aura(974, nil, 'BOTTOMRIGHT', {0.2, 0.2, 1}), -- Earth Shield
+		[974]		= Aura(974, nil, 'BOTTOMRIGHT', {0.91, 0.80, 0.44}), -- Earth Shield
+		[383648]	= Aura(383648, nil, 'BOTTOMRIGHT', {0.91, 0.80, 0.44}), -- Earth Shield (Elemental Orbit)
 	},
 	HUNTER = {
 		[90361]		= Aura(90361, nil, 'TOP', {0.34, 0.47, 0.31}), -- Spirit Mend (HoT)
@@ -1147,7 +1152,7 @@ G.unitframe.ChannelTicks = {
 	-- Evoker
 	[356995]	= 3, -- Disintegrate
 	-- Warlock
-	[198590]	= 5, -- Drain Soul
+	[198590]	= 4, -- Drain Soul
 	[755]		= 5, -- Health Funnel
 	[234153]	= 5, -- Drain Life
 	-- Priest
@@ -1191,12 +1196,6 @@ G.unitframe.TalentChannelTicks = {
 	-- IsSpellKnownOrOverridesKnown and/or IsPlayerSpell (for some spells, ex: Improved Purify)
 }
 
--- Spells Effected By Haste, these spells require a Tick Size (table above)
-G.unitframe.HastedChannelTicks = {
-	-- Mage
-	[205021]	= true, -- Ray of Frost
-}
-
 -- Increase ticks from auras
 G.unitframe.AuraChannelTicks = {
 	-- Priest
@@ -1204,12 +1203,9 @@ G.unitframe.AuraChannelTicks = {
 	[47758]		= { filter = 'HELPFUL', spells = { [373183] = 6 } }, -- Harsh Discipline: Penance (dps)
 }
 
--- The Base Tick Size
-G.unitframe.ChannelTicksSize = {
-	-- Warlock
-	[198590]	= 1, -- Drain Soul
-	-- Mage
-	[205021]	= 1, -- Ray of Frost
+-- Spells Effected By Haste, value is Base Tick Size
+G.unitframe.HastedChannelTicks = {
+	-- [spellID] = 1, -- SpellName
 }
 
 -- This should probably be the same as the whitelist filter + any personal class ones that may be important to watch
