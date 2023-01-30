@@ -208,6 +208,8 @@ do
 		'ElvUI_QuestXP',
 		'ElvUI_UnitFramePlugin',
 		'ElvUI_VisualAuraTimers',
+		'ElvUI_SecondsToBuff',
+		'ElvUI_BuffHighlight',
 	}
 
 	if not IsAddOnLoaded('ShadowedUnitFrames') then

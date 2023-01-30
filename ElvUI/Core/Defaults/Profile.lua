@@ -125,6 +125,12 @@ P.general = {
 				yOffset = 0,
 				hide = true,
 			},
+			crafting = {
+				scale = 1,
+				position = 'TOPRIGHT',
+				xOffset = -23,
+				yOffset = -3,
+			},
 			mail = {
 				scale = 1,
 				texture = 'Mail3',
@@ -770,6 +776,7 @@ P.nameplates = {
 	},
 	visibility = {
 		showAll = true,
+		showOnlyNames = false,
 		enemy = {
 			guardians = false,
 			minions = false,
@@ -2626,7 +2633,7 @@ for i = 1, 10 do
 	P.actionbar['bar'..i] = bar
 end
 
-if E.Retail then
+if not E.Classic then
 	P.actionbar.bar13 = CopyTable(P.actionbar.bar1)
 	P.actionbar.bar14 = CopyTable(P.actionbar.bar1)
 	P.actionbar.bar15 = CopyTable(P.actionbar.bar1)
