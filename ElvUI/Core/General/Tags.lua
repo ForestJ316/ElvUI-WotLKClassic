@@ -354,7 +354,7 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 		E:AddTag(format('power:%s:shortvalue', tagFormat), 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
 			local powerType = UnitPowerType(unit)
 			local min = UnitPower(unit, powerType)
-			if (min ~= 0 or powerType == 6) and tagFormat ~= 'deficit' then
+			if (min ~= 0 or (min == 0 and powerType == 1) or powerType == 6) and tagFormat ~= 'deficit' then
 				return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, powerType), 1, true)
 			end
 		end)
