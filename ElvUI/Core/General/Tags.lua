@@ -274,8 +274,34 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 	E:AddTag(format('power:%s', tagFormat), 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
 		local powerType = UnitPowerType(unit)
 		local min = UnitPower(unit, powerType)
-		if min ~= 0 then
+		--if min ~= 0 then
 			return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, powerType))
+		--end
+	end)
+
+	E:AddTag(format('combat', tagFormat), 1, function(unit)
+		local inCombat = UnitAffectingCombat(unit)
+		local String
+		if inCombat then 
+			String = "|TInterface\\CharacterFrame\\UI-StateIcon:32:32:0:0:64:64:32:64:0:31|t"
+		else
+			String = ""
+		end
+		return String
+	end)
+
+	E:AddTag(format('power:percentshowzero', tagFormat), 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
+		local powerType = UnitPowerType(unit)
+		local min = UnitPower(unit, powerType)
+		return E:GetFormattedText("PERCENT", min, UnitPowerMax(unit, powerType), 0)
+	end)
+
+	E:AddTag(format('health:percent:hidedead', tagFormat), 'UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION PLAYER_FLAGS_CHANGED', function(unit)
+		local min, max = UnitHealth(unit), UnitHealthMax(unit)
+		if (min == 0) or (UnitIsGhost(unit)) or (not UnitIsConnected(unit) or UnitIsAFK(unit)) then
+			return ""
+		else
+			return E:GetFormattedText("PERCENT", min, max, 0)
 		end
 	end)
 
@@ -316,20 +342,20 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 				return status
 			else
 				local min, max = UnitHealth(unit), UnitHealthMax(unit)
-				return E:GetFormattedText(textFormat, min, max, nil, true)
+				return E:GetFormattedText(textFormat, min, max, 1, true)
 			end
 		end)
 
 		E:AddTag(format('health:%s-nostatus:shortvalue', tagFormat), 'UNIT_HEALTH UNIT_MAXHEALTH', function(unit)
 			local min, max = UnitHealth(unit), UnitHealthMax(unit)
-			return E:GetFormattedText(textFormat, min, max, nil, true)
+			return E:GetFormattedText(textFormat, min, max, 1, true)
 		end)
 
 		E:AddTag(format('power:%s:shortvalue', tagFormat), 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
 			local powerType = UnitPowerType(unit)
 			local min = UnitPower(unit, powerType)
-			if min ~= 0 and tagFormat ~= 'deficit' then
-				return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, powerType), nil, true)
+			if (min ~= 0 or powerType == 6) and tagFormat ~= 'deficit' then
+				return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, powerType), 1, true)
 			end
 		end)
 
@@ -475,7 +501,7 @@ end)
 E:AddTag('health:max:shortvalue', 'UNIT_MAXHEALTH', function(unit)
 	local _, max = UnitHealth(unit), UnitHealthMax(unit)
 
-	return E:GetFormattedText('CURRENT', max, max, nil, true)
+	return E:GetFormattedText('CURRENT', max, max, 1, true)
 end)
 
 E:AddTag('absorbs', 'UNIT_ABSORB_AMOUNT_CHANGED', function(unit)
@@ -523,7 +549,7 @@ E:AddTag('power:max:shortvalue', 'UNIT_DISPLAYPOWER UNIT_MAXPOWER', function(uni
 	local pType = UnitPowerType(unit)
 	local max = UnitPowerMax(unit, pType)
 
-	return E:GetFormattedText('CURRENT', max, max, nil, true)
+	return E:GetFormattedText('CURRENT', max, max, 1, true)
 end)
 
 E:AddTag('mana:max:shortvalue', 'UNIT_MAXPOWER', function(unit)
@@ -547,6 +573,30 @@ E:AddTag('difficultycolor', 'UNIT_LEVEL PLAYER_LEVEL_UP', function(unit)
 	end
 
 	return Hex(color.r, color.g, color.b)
+end)
+
+E:AddTag('levelcolor', 'UNIT_LEVEL PLAYER_LEVEL_UP', function(unit)
+	local r, g, b
+	local level = UnitLevel(unit)
+	if level > 1 and not UnitIsPlayer(unit) then
+		local DiffColor = UnitLevel(unit) - UnitLevel("player")
+		if DiffColor >= 5 then
+			r, g, b = 1.00, 0.10, 0.10 -- red
+		elseif DiffColor >= 3 then
+			r, g, b = 1.00, 0.50, 0.25 -- orange
+		elseif DiffColor >= -2 then
+			r, g, b = 1.00, 1.00, 0.00 -- yellow
+		elseif -DiffColor <= GetQuestGreenRange() then
+			r, g, b = 0.25, 0.75, 0.25 -- green
+		else
+			r, g, b = 0.50, 0.50, 0.50 -- grey
+		end
+	elseif level == -1 and not UnitIsPlayer(unit) then -- case for ?? level mobs, just do red ??
+		r, g, b = 1.00, 0.10, 0.10
+	elseif UnitIsPlayer(unit) then
+		r, g, b = 1.00, 1.00, 0.00 -- just do yellow for players
+	end
+	return Hex(r, g, b)
 end)
 
 E:AddTag('selectioncolor', 'UNIT_NAME_UPDATE UNIT_FACTION INSTANCE_ENCOUNTER_ENGAGE_UNIT', function(unit)

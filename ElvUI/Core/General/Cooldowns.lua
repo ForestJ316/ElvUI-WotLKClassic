@@ -80,7 +80,7 @@ function E:Cooldown_OnUpdate(elapsed)
 					if self.textColors then
 						self.text:SetFormattedText(style[which], value, self.textColors[id + targetAura], remainder)
 					else
-						self.text:SetFormattedText(style[which], value, remainder)
+						self.text:SetFormattedText(style[which], ceil(value), remainder)
 					end
 				end
 
