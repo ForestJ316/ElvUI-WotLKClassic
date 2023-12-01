@@ -1,10 +1,8 @@
 local E, L, V, P, G = unpack(ElvUI)
 local DT = E:GetModule('DataTexts')
 
-local _G = _G
 local pairs, strjoin = pairs, strjoin
 local IsShiftKeyDown = IsShiftKeyDown
-local InCombatLockdown = InCombatLockdown
 local ReloadUI = ReloadUI
 
 local displayString, db = ''
@@ -36,7 +34,7 @@ local function OnEnter()
 end
 
 local function OnClick(_, button)
-	if InCombatLockdown() then _G.UIErrorsFrame:AddMessage(E.InfoColor.._G.ERR_NOT_IN_COMBAT) return end
+	if E:AlertCombat() then return end
 
 	if button == 'LeftButton' then
 		E:ToggleOptions()
@@ -53,4 +51,4 @@ local function ApplySettings(self, hex)
 	displayString = strjoin('', hex, '%s|r')
 end
 
-DT:RegisterDatatext('ElvUI', nil, nil, OnEvent, nil, OnClick, OnEnter, nil, L["ElvUI Config"], nil, ApplySettings)
+DT:RegisterDatatext('ElvUI', nil, nil, OnEvent, nil, OnClick, OnEnter, nil, configText, nil, ApplySettings)

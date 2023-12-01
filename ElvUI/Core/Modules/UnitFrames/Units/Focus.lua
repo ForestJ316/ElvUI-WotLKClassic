@@ -30,6 +30,7 @@ function UF:Construct_FocusFrame(frame)
 	frame.AuraWatch = UF:Construct_AuraWatch(frame)
 	frame.Fader = UF:Construct_Fader()
 	frame.Cutaway = UF:Construct_Cutaway(frame)
+	frame.PrivateAuras = UF:Construct_PrivateAuras(frame)
 	frame.CombatIndicator = UF:Construct_CombatIndicator(frame)
 
 	frame.customTexts = {}
@@ -72,7 +73,7 @@ function UF:Update_FocusFrame(frame, db)
 	end
 
 	frame:Size(frame.UNIT_WIDTH, frame.UNIT_HEIGHT)
-	_G[frame:GetName()..'Mover']:Size(frame:GetSize())
+	frame.mover:Size(frame:GetSize())
 
 	UF:Configure_InfoPanel(frame)
 	UF:Configure_HealthBar(frame)
@@ -88,6 +89,7 @@ function UF:Update_FocusFrame(frame, db)
 	UF:Configure_RaidIcon(frame)
 	UF:Configure_AuraBars(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_CustomTexts(frame)
 	UF:Configure_CombatIndicator(frame)
 	UF:Configure_AuraWatch(frame)

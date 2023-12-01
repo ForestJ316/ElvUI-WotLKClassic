@@ -9,7 +9,6 @@ local EasyMenu = EasyMenu
 local GetMouseFocus = GetMouseFocus
 local HideUIPanel = HideUIPanel
 local IsShiftKeyDown = IsShiftKeyDown
-local InCombatLockdown = InCombatLockdown
 local BreakUpLargeNumbers = BreakUpLargeNumbers
 local ShowGarrisonLandingPage = ShowGarrisonLandingPage
 local C_Garrison_HasGarrison = C_Garrison.HasGarrison
@@ -45,11 +44,11 @@ local ISLANDS_HEADER = ISLANDS_HEADER
 local ISLANDS_QUEUE_FRAME_TITLE = ISLANDS_QUEUE_FRAME_TITLE
 local ISLANDS_QUEUE_WEEKLY_QUEST_PROGRESS = ISLANDS_QUEUE_WEEKLY_QUEST_PROGRESS
 local LE_EXPANSION_BATTLE_FOR_AZEROTH = LE_EXPANSION_BATTLE_FOR_AZEROTH
-local GARRISONFOLLOWERTYPE_6_0 = Enum.GarrisonFollowerType.FollowerType_6_0
-local GARRISONFOLLOWERTYPE_7_0 = Enum.GarrisonFollowerType.FollowerType_7_0
-local GARRISONFOLLOWERTYPE_8_0 = Enum.GarrisonFollowerType.FollowerType_8_0
-local GARRISONFOLLOWERTYPE_6_2 = Enum.GarrisonFollowerType.FollowerType_6_2
-local GARRISONFOLLOWERTYPE_9_0 = Enum.GarrisonFollowerType.FollowerType_9_0
+local GARRISONFOLLOWERTYPE_6_0_BOAT = Enum.GarrisonFollowerType.FollowerType_6_0_Boat
+local GARRISONFOLLOWERTYPE_6_0 = Enum.GarrisonFollowerType.FollowerType_6_0_GarrisonFollower
+local GARRISONFOLLOWERTYPE_7_0 = Enum.GarrisonFollowerType.FollowerType_7_0_GarrisonFollower
+local GARRISONFOLLOWERTYPE_8_0 = Enum.GarrisonFollowerType.FollowerType_8_0_GarrisonFollower
+local GARRISONFOLLOWERTYPE_9_0 = Enum.GarrisonFollowerType.FollowerType_9_0_GarrisonFollower
 local GARRISONTYPE_6_0 = Enum.GarrisonType.Type_6_0
 local GARRISONTYPE_7_0 = Enum.GarrisonType.Type_7_0
 local GARRISONTYPE_8_0 = Enum.GarrisonType.Type_8_0
@@ -287,7 +286,7 @@ local function OnEnter()
 
 		DT.tooltip:AddLine(' ')
 		DT.tooltip:AddDoubleLine(L["Naval Mission(s) Report:"], AddInfo(1101), nil, nil, nil, 1, 1 , 1)
-		AddInProgressMissions(GARRISONFOLLOWERTYPE_6_2)
+		AddInProgressMissions(GARRISONFOLLOWERTYPE_6_0_BOAT)
 
 		--Buildings
 		data = C_Garrison_GetBuildings(GARRISONTYPE_6_0)
@@ -319,12 +318,12 @@ local function OnEnter()
 end
 
 local function OnClick(self, btn)
-	if InCombatLockdown() then _G.UIErrorsFrame:AddMessage(E.InfoColor.._G.ERR_NOT_IN_COMBAT) return end
+	if E:AlertCombat() then return end
 
 	if btn == 'RightButton' then
 		E:SetEasyMenuAnchor(E.EasyMenu, self)
 		EasyMenu(menuList, E.EasyMenu, nil, nil, nil, 'MENU')
-	else
+	elseif _G.ExpansionLandingPageMinimapButton:IsShown() then
 		_G.ExpansionLandingPageMinimapButton:ToggleLandingPage()
 	end
 end
@@ -353,8 +352,8 @@ local function OnEvent(self, event, ...)
 		numMissions = #C_Garrison_GetCompleteMissions(GARRISONFOLLOWERTYPE_9_0)
 		+ #C_Garrison_GetCompleteMissions(GARRISONFOLLOWERTYPE_8_0)
 		+ #C_Garrison_GetCompleteMissions(GARRISONFOLLOWERTYPE_7_0)
+		+ #C_Garrison_GetCompleteMissions(GARRISONFOLLOWERTYPE_6_0_BOAT)
 		+ #C_Garrison_GetCompleteMissions(GARRISONFOLLOWERTYPE_6_0)
-		+ #C_Garrison_GetCompleteMissions(GARRISONFOLLOWERTYPE_6_2)
 	end
 
 	if numMissions > 0 then

@@ -1,9 +1,9 @@
 local E, L, V, P, G = unpack(ElvUI)
 local AB = E:GetModule('ActionBars')
 local UF = E:GetModule('UnitFrames')
-local Misc = E:GetModule('Misc')
-local Bags = E:GetModule('Bags')
-local Skins = E:GetModule('Skins')
+local M = E:GetModule('Misc')
+local B = E:GetModule('Bags')
+local S = E:GetModule('Skins')
 
 local _G = _G
 local pairs, type, unpack, assert = pairs, type, unpack, assert
@@ -11,12 +11,10 @@ local tremove, tContains, tinsert, wipe = tremove, tContains, tinsert, wipe
 local format, error, ipairs, ceil = format, error, ipairs, ceil
 
 local CreateFrame = CreateFrame
-local IsAddOnLoaded = IsAddOnLoaded
 local DeleteCursorItem = DeleteCursorItem
 local MoneyFrame_Update = MoneyFrame_Update
 local UnitIsDeadOrGhost, InCinematic = UnitIsDeadOrGhost, InCinematic
 local PurchaseSlot, GetBankSlotCost = PurchaseSlot, GetBankSlotCost
-local SetCVar, EnableAddOn, DisableAddOn = SetCVar, EnableAddOn, DisableAddOn
 local ReloadUI, PlaySound, StopMusic = ReloadUI, PlaySound, StopMusic
 local StaticPopup_Resize = StaticPopup_Resize
 local GetBindingFromClick = GetBindingFromClick
@@ -24,6 +22,10 @@ local GetBindingFromClick = GetBindingFromClick
 local AutoCompleteEditBox_OnEnterPressed = AutoCompleteEditBox_OnEnterPressed
 local AutoCompleteEditBox_OnTextChanged = AutoCompleteEditBox_OnTextChanged
 local ChatEdit_FocusActiveWindow = ChatEdit_FocusActiveWindow
+
+local DisableAddOn = (C_AddOns and C_AddOns.DisableAddOn) or DisableAddOn
+local EnableAddOn = (C_AddOns and C_AddOns.EnableAddOn) or EnableAddOn
+local IsAddOnLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
 local PickupContainerItem = (C_Container and C_Container.PickupContainerItem) or PickupContainerItem
 
 local STATICPOPUP_TEXTURE_ALERT = STATICPOPUP_TEXTURE_ALERT
@@ -31,20 +33,19 @@ local STATICPOPUP_TEXTURE_ALERTGEAR = STATICPOPUP_TEXTURE_ALERTGEAR
 local YES, NO, OKAY, CANCEL, ACCEPT, DECLINE = YES, NO, OKAY, CANCEL, ACCEPT, DECLINE
 -- GLOBALS: ElvUIBindPopupWindowCheckButton
 
-local DOWNLOAD_URL = 'https://www.tukui.org/download.php?ui=elvui'
+local DOWNLOAD_URL = 'https://tukui.org/elvui'
 
 E.PopupDialogs = {}
 E.StaticPopup_DisplayedFrames = {}
 
 E.PopupDialogs.ELVUI_UPDATE_AVAILABLE = {
-	text = L["ElvUI is five or more revisions out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"],
+	text = L["ElvUI is five or more revisions out of date. You can download the newest version from tukui.org."],
 	hasEditBox = 1,
 	OnShow = function(self)
 		self.editBox:SetAutoFocus(false)
 		self.editBox.width = self.editBox:GetWidth()
 		self.editBox:Width(220)
 		self.editBox:SetText(DOWNLOAD_URL)
-		self.editBox:HighlightText()
 		ChatEdit_FocusActiveWindow()
 	end,
 	OnHide = function(self)
@@ -53,7 +54,6 @@ E.PopupDialogs.ELVUI_UPDATE_AVAILABLE = {
 	end,
 	hideOnEscape = 1,
 	button1 = OKAY,
-	OnAccept = E.noop,
 	EditBoxOnEnterPressed = function(self)
 		ChatEdit_FocusActiveWindow()
 		self:GetParent():Hide()
@@ -68,7 +68,7 @@ E.PopupDialogs.ELVUI_UPDATE_AVAILABLE = {
 		end
 
 		self:HighlightText()
-		self:ClearFocus()
+
 		ChatEdit_FocusActiveWindow()
 	end,
 	OnEditFocusGained = function(self)
@@ -88,7 +88,6 @@ E.PopupDialogs.ELVUI_EDITBOX = {
 		self.editBox:AddHistoryLine('text')
 		self.editBox.temptxt = data
 		self.editBox:SetText(data)
-		self.editBox:HighlightText()
 		self.editBox:SetJustifyH('CENTER')
 	end,
 	OnHide = function(self)
@@ -106,19 +105,17 @@ E.PopupDialogs.ELVUI_EDITBOX = {
 		if self:GetText() ~= self.temptxt then
 			self:SetText(self.temptxt)
 		end
+
 		self:HighlightText()
-		self:ClearFocus()
 	end,
-	OnAccept = E.noop,
 	whileDead = 1,
 	preferredIndex = 3,
 	hideOnEscape = 1,
 }
 
-E.PopupDialogs.CLIENT_UPDATE_REQUEST = {
-	text = L["Detected that your ElvUI Options addon is out of date. This may be a result of your Tukui Client being out of date. Please visit our download page and update your Tukui Client, then reinstall ElvUI. Not having your ElvUI Options addon up to date will result in missing options."],
+E.PopupDialogs.UPDATE_REQUEST = {
+	text = L["UPDATE_REQUEST"],
 	button1 = OKAY,
-	OnAccept = E.noop,
 	showAlert = 1,
 }
 
@@ -277,14 +274,14 @@ E.PopupDialogs.DELETE_GRAYS = {
 	button1 = YES,
 	button2 = NO,
 	OnAccept = function()
-		Bags:VendorGrays(true)
+		B:VendorGrays(true)
 
-		for _, info in ipairs(Bags.SellFrame.Info.itemList) do
+		for _, info in ipairs(B.SellFrame.Info.itemList) do
 			PickupContainerItem(info[1], info[2])
 			DeleteCursorItem()
 		end
 
-		wipe(Bags.SellFrame.Info.itemList)
+		wipe(B.SellFrame.Info.itemList)
 	end,
 	OnShow = function(self)
 		MoneyFrame_Update(self.moneyFrame, E.PopupDialogs.DELETE_GRAYS.Money)
@@ -333,7 +330,7 @@ E.PopupDialogs.DISBAND_RAID = {
 	text = L["Are you sure you want to disband the group?"],
 	button1 = ACCEPT,
 	button2 = CANCEL,
-	OnAccept = function() Misc:DisbandRaidGroup() end,
+	OnAccept = function() M:DisbandRaidGroup() end,
 	whileDead = 1,
 }
 
@@ -389,10 +386,9 @@ E.PopupDialogs.SCRIPT_PROFILE = {
 	button1 = L["Disable"],
 	button2 = L["Continue"],
 	OnAccept = function()
-		SetCVar('scriptProfile', 0)
+		E:SetCVar('scriptProfile', 0)
 		ReloadUI()
 	end,
-	OnCancel = E.noop,
 	showAlert = 1,
 	whileDead = 1,
 	hideOnEscape = false,
@@ -1104,11 +1100,11 @@ function E:StaticPopup_CreateSecureButton(popup, button, text, macro)
 	btn:Size(button:GetSize())
 	btn:HookScript('OnEnter', SecureOnEnter)
 	btn:HookScript('OnLeave', SecureOnLeave)
-	Skins:HandleButton(btn)
+	S:HandleButton(btn)
 
 	local t = btn:CreateFontString(nil, 'OVERLAY', btn)
 	t:Point('CENTER', 0, 1)
-	t:FontTemplate(nil, nil, 'NONE')
+	t:FontTemplate(nil, nil, 'SHADOW')
 	t:SetJustifyH('CENTER')
 	t:SetText(text)
 	btn.text = t
@@ -1175,20 +1171,20 @@ function E:Contruct_StaticPopups()
 				E.StaticPopup_OnClick(btn:GetParent(), btn:GetID())
 			end)
 
-			Skins:HandleButton(button)
+			S:HandleButton(button)
 		end
 
 		_G['ElvUI_StaticPopup'..index..'CheckButton']:Size(24)
-		_G['ElvUI_StaticPopup'..index..'CheckButtonText']:FontTemplate(nil, nil, '')
+		_G['ElvUI_StaticPopup'..index..'CheckButtonText']:FontTemplate(nil, nil, 'SHADOW')
 		_G['ElvUI_StaticPopup'..index..'CheckButtonText']:SetTextColor(1,0.17,0.26)
 		_G['ElvUI_StaticPopup'..index..'CheckButtonText']:Point('LEFT', _G['ElvUI_StaticPopup'..index..'CheckButton'], 'RIGHT', 4, 1)
-		Skins:HandleCheckBox(_G['ElvUI_StaticPopup'..index..'CheckButton'])
+		S:HandleCheckBox(_G['ElvUI_StaticPopup'..index..'CheckButton'])
 
 		_G['ElvUI_StaticPopup'..index..'EditBox']:SetFrameLevel(_G['ElvUI_StaticPopup'..index..'EditBox']:GetFrameLevel()+1)
-		Skins:HandleEditBox(_G['ElvUI_StaticPopup'..index..'EditBox'])
-		Skins:HandleEditBox(_G['ElvUI_StaticPopup'..index..'MoneyInputFrameGold'])
-		Skins:HandleEditBox(_G['ElvUI_StaticPopup'..index..'MoneyInputFrameSilver'])
-		Skins:HandleEditBox(_G['ElvUI_StaticPopup'..index..'MoneyInputFrameCopper'])
+		S:HandleEditBox(_G['ElvUI_StaticPopup'..index..'EditBox'])
+		S:HandleEditBox(_G['ElvUI_StaticPopup'..index..'MoneyInputFrameGold'])
+		S:HandleEditBox(_G['ElvUI_StaticPopup'..index..'MoneyInputFrameSilver'])
+		S:HandleEditBox(_G['ElvUI_StaticPopup'..index..'MoneyInputFrameCopper'])
 		_G['ElvUI_StaticPopup'..index..'EditBox'].backdrop:Point('TOPLEFT', -2, -4)
 		_G['ElvUI_StaticPopup'..index..'EditBox'].backdrop:Point('BOTTOMRIGHT', 2, 4)
 		_G['ElvUI_StaticPopup'..index..'ItemFrameNameFrame']:Kill()

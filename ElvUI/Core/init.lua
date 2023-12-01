@@ -4,20 +4,29 @@
 		local E, L, V, P, G = unpack(ElvUI) --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 ]]
 
-local _G, next, strfind = _G, next, strfind
-local gsub, tinsert, type = gsub, tinsert, type
+local _G = _G
+local gsub, tinsert, next = gsub, tinsert, next
+local tostring, strfind, type = tostring, strfind, type
 
-local GetAddOnEnableState = GetAddOnEnableState
+local CreateFrame = CreateFrame
 local GetBuildInfo = GetBuildInfo
 local GetLocale = GetLocale
 local GetTime = GetTime
-local CreateFrame = CreateFrame
-local DisableAddOn = DisableAddOn
-local IsAddOnLoaded = IsAddOnLoaded
 local ReloadUI = ReloadUI
+local UIParent = UIParent
 
-local RegisterCVar = C_CVar.RegisterCVar
 local UIDropDownMenu_SetAnchor = UIDropDownMenu_SetAnchor
+
+local DisableAddOn = (C_AddOns and C_AddOns.DisableAddOn) or DisableAddOn
+local GetAddOnMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+local IsAddOnLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
+local IsHardcoreActive = C_GameRules and C_GameRules.IsHardcoreActive
+
+local C_AddOns_GetAddOnEnableState = C_AddOns and C_AddOns.GetAddOnEnableState
+local GetAddOnEnableState = GetAddOnEnableState -- eventually this will be on C_AddOns and args swap
+
+local GetCVar = C_CVar.GetCVar
+local SetCVar = C_CVar.SetCVar
 
 -- GLOBALS: ElvCharacterDB, ElvPrivateDB, ElvDB, ElvCharacterData, ElvPrivateData, ElvData
 
@@ -52,17 +61,18 @@ E.DataBars = E:NewModule('DataBars','AceEvent-3.0')
 E.DataTexts = E:NewModule('DataTexts','AceTimer-3.0','AceHook-3.0','AceEvent-3.0')
 E.DebugTools = E:NewModule('DebugTools','AceEvent-3.0','AceHook-3.0')
 E.Distributor = E:NewModule('Distributor','AceEvent-3.0','AceTimer-3.0','AceComm-3.0','AceSerializer-3.0')
+E.EditorMode = E:NewModule('EditorMode','AceEvent-3.0')
 E.Layout = E:NewModule('Layout','AceEvent-3.0')
 E.Minimap = E:NewModule('Minimap','AceHook-3.0','AceEvent-3.0','AceTimer-3.0')
 E.Misc = E:NewModule('Misc','AceEvent-3.0','AceTimer-3.0','AceHook-3.0')
 E.ModuleCopy = E:NewModule('ModuleCopy','AceEvent-3.0','AceTimer-3.0','AceComm-3.0','AceSerializer-3.0')
 E.NamePlates = E:NewModule('NamePlates','AceHook-3.0','AceEvent-3.0','AceTimer-3.0')
 E.PluginInstaller = E:NewModule('PluginInstaller')
+E.PrivateAuras = E:NewModule('PrivateAuras')
 E.RaidUtility = E:NewModule('RaidUtility','AceEvent-3.0')
 E.Skins = E:NewModule('Skins','AceTimer-3.0','AceHook-3.0','AceEvent-3.0')
 E.Tooltip = E:NewModule('Tooltip','AceTimer-3.0','AceHook-3.0','AceEvent-3.0')
 E.TotemTracker = E:NewModule('TotemTracker','AceEvent-3.0')
-E.EditorMode = E:NewModule('EditorMode','AceEvent-3.0')
 E.UnitFrames = E:NewModule('UnitFrames','AceTimer-3.0','AceEvent-3.0','AceHook-3.0')
 E.WorldMap = E:NewModule('WorldMap','AceHook-3.0','AceEvent-3.0','AceTimer-3.0')
 
@@ -73,6 +83,7 @@ E.twoPixelsPlease = false -- changing this option is not supported! :P
 -- Expansions
 E.Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 E.Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+E.ClassicHC = E.Classic and IsHardcoreActive()
 E.TBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC -- not used
 E.Wrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 
@@ -81,6 +92,14 @@ E.QualityColors = CopyTable(_G.BAG_ITEM_QUALITY_COLORS)
 E.QualityColors[-1] = {r = 0, g = 0, b = 0}
 E.QualityColors[Enum.ItemQuality.Poor] = {r = .61, g = .61, b = .61}
 E.QualityColors[Enum.ItemQuality.Common or Enum.ItemQuality.Standard] = {r = 0, g = 0, b = 0}
+
+do
+	function E:AddonCompartmentFunc()
+		E:ToggleOptions()
+	end
+
+	_G.ElvUI_AddonCompartmentFunc = E.AddonCompartmentFunc
+end
 
 do -- this is different from E.locale because we need to convert for ace locale files
 	local convert = {enGB = 'enUS', esES = 'esMX', itIT = 'enUS'}
@@ -92,7 +111,7 @@ do -- this is different from E.locale because we need to convert for ace locale 
 end
 
 do
-	E.Libs = {}
+	E.Libs = { version = tonumber(GetAddOnMetadata('ElvUI_Libraries', 'Version')) }
 	E.LibsMinor = {}
 	function E:AddLib(name, major, minor)
 		if not name then return end
@@ -114,7 +133,7 @@ do
 	E:AddLib('LAB', 'LibActionButton-1.0-ElvUI')
 	E:AddLib('LDB', 'LibDataBroker-1.1')
 	E:AddLib('SimpleSticky', 'LibSimpleSticky-1.0')
-	E:AddLib('RangeCheck', 'LibRangeCheck-2.0')
+	E:AddLib('RangeCheck', 'LibRangeCheck-3.0')
 	E:AddLib('CustomGlow', 'LibCustomGlow-1.0')
 	E:AddLib('Deflate', 'LibDeflate')
 	E:AddLib('Masque', 'Masque', true)
@@ -152,24 +171,36 @@ do
 end
 
 do -- expand LibCustomGlow for button handling
-	local LCG, frames = E.Libs.CustomGlow, {}
-	function LCG.ShowOverlayGlow(button)
-		local opt = E.db.general.customGlow
-		local glow = LCG.startList[opt.style]
-		if glow then
-			local arg3, arg4, arg6
-			local pixel, cast = opt.style == 'Pixel Glow', opt.style == 'Autocast Shine'
-			if pixel or cast then arg3, arg4 = opt.lines, opt.speed else arg3 = opt.speed end
-			if pixel then arg6 = opt.size end
+	local LCG, frames, proc = E.Libs.CustomGlow, {}, { xOffset = 3, yOffset = 3 }
+	function LCG.ShowOverlayGlow(button, custom)
+		local db = custom or E.db.general.customGlow
+		local glow = LCG.startList[db.style]
+		if glow then -- TODO: frameLevel isnt actually used yet
+			local color = db.useColor and ((custom and custom.color) or E.media.customGlowColor)
 
-			glow(button, opt.useColor and E.media.customGlowColor, arg3, arg4, nil, arg6)
+			if db.style == 'Proc Glow' then -- this uses an options table
+				proc.color = color
+				proc.duration = db.duration
+				proc.startAnim = db.startAnimation
+				proc.frameLevel = db.frameLevel
+
+				glow(button, proc)
+			else
+				local pixel, cast = db.style == 'Pixel Glow', db.style == 'Autocast Shine'
+				local arg3, arg4, arg6, arg9, arg11
+
+				if pixel or cast then arg3, arg4 = db.lines, db.speed else arg3 = db.speed end
+				if pixel then arg6, arg11 = db.size, db.frameLevel elseif cast then arg9 = db.frameLevel end
+
+				glow(button, color, arg3, arg4, nil, arg6, nil, nil, arg9, nil, arg11)
+			end
 
 			frames[button] = true
 		end
 	end
 
-	function LCG.HideOverlayGlow(button)
-		local glow = LCG.stopList[E.db.general.customGlow.style]
+	function LCG.HideOverlayGlow(button, style)
+		local glow = LCG.stopList[style or E.db.general.customGlow.style]
 		if glow then
 			glow(button)
 
@@ -221,6 +252,40 @@ do
 	end
 end
 
+function E:SetCVar(cvar, value, ...)
+	local valstr = ((type(value) == 'boolean') and (value and '1' or '0')) or tostring(value)
+	if GetCVar(cvar) ~= valstr then
+		SetCVar(cvar, valstr, ...)
+	end
+end
+
+function E:SetEasyMenuAnchor(menu, frame)
+	local point = E:GetScreenQuadrant(frame)
+	local bottom = point and strfind(point, 'BOTTOM')
+	local left = point and strfind(point, 'LEFT')
+
+	local anchor1 = (bottom and left and 'BOTTOMLEFT') or (bottom and 'BOTTOMRIGHT') or (left and 'TOPLEFT') or 'TOPRIGHT'
+	local anchor2 = (bottom and left and 'TOPLEFT') or (bottom and 'TOPRIGHT') or (left and 'BOTTOMLEFT') or 'BOTTOMRIGHT'
+
+	UIDropDownMenu_SetAnchor(menu, 0, 0, anchor1, frame, anchor2)
+end
+
+function E:ResetProfile()
+	E:StaggeredUpdateAll()
+end
+
+function E:OnProfileReset()
+	E:StaticPopup_Show('RESET_PROFILE_PROMPT')
+end
+
+function E:ResetPrivateProfile()
+	ReloadUI()
+end
+
+function E:OnPrivateProfileReset()
+	E:StaticPopup_Show('RESET_PRIVATE_PROFILE_PROMPT')
+end
+
 function E:OnEnable()
 	E:Initialize()
 end
@@ -256,8 +321,10 @@ function E:OnInitialize()
 		end
 	end
 
-	E.ScanTooltip = CreateFrame('GameTooltip', 'ElvUI_ScanTooltip', _G.UIParent, 'GameTooltipTemplate')
-	E.EasyMenu = CreateFrame('Frame', 'ElvUI_EasyMenu', _G.UIParent, 'UIDropDownMenuTemplate')
+	E.SpellBookTooltip = CreateFrame('GameTooltip', 'ElvUI_SpellBookTooltip', UIParent, 'GameTooltipTemplate')
+	E.ConfigTooltip = CreateFrame('GameTooltip', 'ElvUI_ConfigTooltip', UIParent, 'GameTooltipTemplate')
+	E.ScanTooltip = CreateFrame('GameTooltip', 'ElvUI_ScanTooltip', UIParent, 'GameTooltipTemplate')
+	E.EasyMenu = CreateFrame('Frame', 'ElvUI_EasyMenu', UIParent, 'UIDropDownMenuTemplate')
 
 	E.PixelMode = E.twoPixelsPlease or E.private.general.pixelPerfect -- keep this over `UIScale`
 	E.Border = (E.PixelMode and not E.twoPixelsPlease) and 1 or 2
@@ -272,38 +339,11 @@ function E:OnInitialize()
 		E.Minimap:SetGetMinimapShape() -- This is just to support for other mods, keep below UIMult
 	end
 
-	if E.Classic then
-		RegisterCVar('fstack_showhighlight', '1')
-	end
-
-	if GetAddOnEnableState(E.myname, 'Tukui') == 2 then
+	if C_AddOns_GetAddOnEnableState then
+		if C_AddOns_GetAddOnEnableState('Tukui', E.myname) == 2 then
+			E:StaticPopup_Show('TUKUI_ELVUI_INCOMPATIBLE')
+		end
+	elseif GetAddOnEnableState(E.myname, 'Tukui') == 2 then
 		E:StaticPopup_Show('TUKUI_ELVUI_INCOMPATIBLE')
 	end
-end
-
-function E:SetEasyMenuAnchor(menu, frame)
-	local point = E:GetScreenQuadrant(frame)
-	local bottom = point and strfind(point, 'BOTTOM')
-	local left = point and strfind(point, 'LEFT')
-
-	local anchor1 = (bottom and left and 'BOTTOMLEFT') or (bottom and 'BOTTOMRIGHT') or (left and 'TOPLEFT') or 'TOPRIGHT'
-	local anchor2 = (bottom and left and 'TOPLEFT') or (bottom and 'TOPRIGHT') or (left and 'BOTTOMLEFT') or 'BOTTOMRIGHT'
-
-	UIDropDownMenu_SetAnchor(menu, 0, 0, anchor1, frame, anchor2)
-end
-
-function E:ResetProfile()
-	E:StaggeredUpdateAll()
-end
-
-function E:OnProfileReset()
-	E:StaticPopup_Show('RESET_PROFILE_PROMPT')
-end
-
-function E:ResetPrivateProfile()
-	ReloadUI()
-end
-
-function E:OnPrivateProfileReset()
-	E:StaticPopup_Show('RESET_PRIVATE_PROFILE_PROMPT')
 end

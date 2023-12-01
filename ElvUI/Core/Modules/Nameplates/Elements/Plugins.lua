@@ -1,8 +1,8 @@
 local E, L, V, P, G = unpack(ElvUI)
 local NP = E:GetModule('NamePlates')
+local PA = E:GetModule('PrivateAuras')
 local LSM = E.Libs.LSM
 
-local strfind = strfind
 local ipairs, unpack = ipairs, unpack
 local CreateFrame = CreateFrame
 
@@ -12,12 +12,18 @@ function NP:Construct_QuestIcons(nameplate)
 	local QuestIcons = CreateFrame('Frame', nameplate:GetName() .. 'QuestIcons', nameplate)
 	QuestIcons:Size(20)
 	QuestIcons:Hide()
+	QuestIcons:CreateBackdrop()
+	QuestIcons.backdrop:Hide()
 
-	for _, object in ipairs(NP.QuestIcons.iconTypes) do
+	for name, object in ipairs(NP.QuestIcons.iconTypes) do
 		local icon = QuestIcons:CreateTexture(nil, 'BORDER', nil, 1)
 		icon.Text = QuestIcons:CreateFontString(nil, 'OVERLAY')
 		icon.Text:FontTemplate()
 		icon:Hide()
+
+		if name == 'Item' then
+			QuestIcons.backdrop:SetOutside(icon)
+		end
 
 		QuestIcons[object] = icon
 	end
@@ -31,7 +37,7 @@ end
 
 function NP:Update_QuestIcons(nameplate)
 	local plateDB = NP:PlateDB(nameplate)
-	local db = plateDB.questIcon
+	local db = E.Retail and plateDB.questIcon
 
 	if db and db.enable and not nameplate.isBattlePet and (nameplate.frameType == 'FRIENDLY_NPC' or nameplate.frameType == 'ENEMY_NPC') then
 		if not nameplate:IsElementEnabled('QuestIcons') then
@@ -41,19 +47,19 @@ function NP:Update_QuestIcons(nameplate)
 		nameplate.QuestIcons:ClearAllPoints()
 		nameplate.QuestIcons:Point(E.InversePoints[db.position], nameplate, db.position, db.xOffset, db.yOffset)
 
+		local font = LSM:Fetch('font', db.font)
 		for _, object in ipairs(NP.QuestIcons.iconTypes) do
 			local icon = nameplate.QuestIcons[object]
-			icon:Size(db.size, db.size)
 			icon:SetAlpha(db.hideIcon and 0 or 1)
+			icon:Size(db.size)
 
-			local xoffset = strfind(db.textPosition, 'LEFT') and -2 or 2
-			local yoffset = strfind(db.textPosition, 'BOTTOM') and 2 or -2
 			icon.Text:ClearAllPoints()
-			icon.Text:Point('CENTER', icon, db.textPosition, xoffset, yoffset)
-			icon.Text:FontTemplate(LSM:Fetch('font', db.font), db.fontSize, db.fontOutline)
+			icon.Text:Point('CENTER', icon, db.textPosition, db.textXOffset, db.textYOffset)
+			icon.Text:FontTemplate(font, db.fontSize, db.fontOutline)
 			icon.Text:SetJustifyH('CENTER')
 
-			icon.size, icon.position = db.size, db.position
+			-- settings to send to the plugin
+			icon.size, icon.position, icon.spacing = db.size, db.position, db.spacing
 		end
 	elseif nameplate:IsElementEnabled('QuestIcons') then
 		nameplate:DisableElement('QuestIcons')
@@ -300,5 +306,27 @@ function NP:Update_Cutaway(nameplate)
 		else
 			nameplate.Cutaway.Power:SetTexture(LSM:Fetch('statusbar', NP.db.statusbar))
 		end
+	end
+end
+
+function NP:Construct_PrivateAuras(nameplate)
+	return CreateFrame('Frame', nameplate:GetName() .. 'PrivateAuras', nameplate)
+end
+
+function NP:Update_PrivateAuras(nameplate, disable)
+	if not E.Retail then return end -- dont exist on classic
+
+	if nameplate.PrivateAuras then
+		PA:RemoveAuras(nameplate.PrivateAuras)
+	end
+
+	local plateDB = not disable and NP:PlateDB(nameplate)
+	local db = plateDB and plateDB.privateAuras
+	if db and db.enable then
+		PA:SetupPrivateAuras(db, nameplate.PrivateAuras, nameplate.unit)
+
+		nameplate.PrivateAuras:ClearAllPoints()
+		nameplate.PrivateAuras:Point(E.InversePoints[db.parent.point], nameplate, db.parent.point, db.parent.offsetX, db.parent.offsetY)
+		nameplate.PrivateAuras:Size(db.icon.size)
 	end
 end

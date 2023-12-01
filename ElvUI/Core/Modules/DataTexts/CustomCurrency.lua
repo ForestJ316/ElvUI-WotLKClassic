@@ -4,9 +4,9 @@ local DT = E:GetModule('DataTexts')
 local _G = _G
 local pairs, strjoin = pairs, strjoin
 
-local defaults = { showIcon = true, nameStyle = 'full', showMax = true, currencyTooltip = true }
-
 local HONOR_CURRENCY = Constants.CurrencyConsts.CLASSIC_HONOR_CURRENCY_ID
+
+local defaults = { showIcon = true, nameStyle = 'full', showMax = true, currencyTooltip = true }
 
 local function OnEvent(self)
 	local info = DT:CurrencyInfo(self.name)
@@ -19,7 +19,7 @@ local function OnEvent(self)
 		end
 
 		if currency.showMax and (info.maxQuantity and info.maxQuantity > 0) then
-			displayString = strjoin(' ', displayString, '/', info.maxQuantity)
+			displayString = strjoin(' ', displayString or '%d', '/', info.maxQuantity)
 		end
 
 		self.text:SetFormattedText(displayString or '%d', info.quantity)

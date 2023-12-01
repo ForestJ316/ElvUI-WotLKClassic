@@ -26,6 +26,7 @@ function UF:Construct_BossFrames(frame)
 	frame.RaidTargetIndicator = UF:Construct_RaidIcon(frame)
 	frame.Fader = UF:Construct_Fader()
 	frame.Cutaway = UF:Construct_Cutaway(frame)
+	frame.PrivateAuras = UF:Construct_PrivateAuras(frame)
 	frame.MouseGlow = UF:Construct_MouseGlow(frame)
 	frame.TargetGlow = UF:Construct_TargetGlow(frame)
 	frame.FocusGlow = UF:Construct_FocusGlow(frame)
@@ -79,6 +80,7 @@ function UF:Update_BossFrames(frame, db)
 	UF:Configure_CustomTexts(frame)
 	UF:Configure_Fader(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_HealComm(frame)
 	UF:Configure_AuraWatch(frame)
 
@@ -119,4 +121,6 @@ function UF:Update_BossFrames(frame, db)
 	frame:UpdateAllElements('ElvUI_UpdateAllElements')
 end
 
-UF.unitgroupstoload.boss = {MAX_BOSS_FRAMES}
+if not E.Classic then
+	UF.unitgroupstoload.boss = {MAX_BOSS_FRAMES}
+end

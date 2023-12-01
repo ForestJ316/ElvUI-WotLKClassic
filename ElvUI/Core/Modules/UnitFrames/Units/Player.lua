@@ -43,8 +43,10 @@ function UF:Construct_PlayerFrame(frame)
 	frame.AuraBars = UF:Construct_AuraBarHeader(frame)
 	frame.InfoPanel = UF:Construct_InfoPanel(frame)
 	frame.PvPIndicator = UF:Construct_PvPIcon(frame)
+	frame.AuraWatch = UF:Construct_AuraWatch(frame)
 	frame.Fader = UF:Construct_Fader()
 	frame.Cutaway = UF:Construct_Cutaway(frame)
+	frame.PrivateAuras = UF:Construct_PrivateAuras(frame)
 	frame.customTexts = {}
 
 	if not E.Retail and E.myclass ~= 'WARRIOR' then
@@ -100,7 +102,7 @@ function UF:Update_PlayerFrame(frame, db)
 	end
 
 	frame:Size(frame.UNIT_WIDTH, frame.UNIT_HEIGHT)
-	_G[frame:GetName()..'Mover']:Size(frame:GetSize())
+	frame.mover:Size(frame:GetSize())
 
 	UF:Configure_InfoPanel(frame)
 	UF:Configure_HealthBar(frame)
@@ -119,14 +121,14 @@ function UF:Update_PlayerFrame(frame, db)
 	UF:Configure_AuraBars(frame)
 	UF:Configure_PVPIcon(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_CustomTexts(frame)
 	UF:Configure_CombatIndicator(frame)
 	UF:Configure_ClassBar(frame)
 	UF:Configure_PVPText(frame)
 	UF:Configure_PartyIndicator(frame)
 	UF:Configure_ResurrectionIcon(frame)
-
-	frame:DisableElement('Castbar')
+	UF:Configure_AuraWatch(frame)
 	UF:Configure_Castbar(frame)
 	UF:Configure_Fader(frame)
 
@@ -142,7 +144,7 @@ function UF:Update_PlayerFrame(frame, db)
 
 	UF:HandleRegisterClicks(frame)
 
-	E:SetMoverSnapOffset(frame:GetName()..'Mover', -(12 + db.castbar.height))
+	E:SetMoverSnapOffset(frame.mover.name, -(12 + db.castbar.height))
 	frame:UpdateAllElements('ElvUI_UpdateAllElements')
 end
 

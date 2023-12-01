@@ -1,8 +1,9 @@
 local E, L, V, P, G = unpack(ElvUI)
 local S = E:GetModule('Skins')
-local B = E:GetModule('Blizzard')
+local BL = E:GetModule('Blizzard')
 
 local _G = _G
+local pairs = pairs
 local hooksecurefunc = hooksecurefunc
 
 function S:PlayerChoice_SetupButtons(buttons)
@@ -32,6 +33,24 @@ function S:PlayerChoice_SetupRewards(rewards)
 	end
 end
 
+local function ReskinSpellWidget(spell)
+	if spell.Icon and not spell.Icon.backdrop then
+		S:HandleIcon(spell.Icon, true)
+	end
+
+	if spell.IconMask then
+		spell.IconMask:Hide()
+	end
+
+	if spell.Border then
+		spell.Border:SetAlpha(0)
+	end
+
+	if spell.Text and E.private.skins.parchmentRemoverEnable then
+		spell.Text:SetTextColor(1, 0.8, 0)
+	end
+end
+
 S.PlayerChoice_TextureKits = {
 	jailerstower = true,
 	cypherchoice = true,
@@ -45,7 +64,7 @@ function S:PlayerChoice_SetupOptions()
 		self.NineSlice:SetAlpha(0)
 
 		self.Title:DisableDrawLayer('BACKGROUND')
-		self.Title.Text:SetTextColor(1, .8, 0)
+		self.Title.Text:SetTextColor(1, 0.8, 0)
 
 		S:HandleCloseButton(self.CloseButton)
 
@@ -68,8 +87,8 @@ function S:PlayerChoice_SetupOptions()
 			local contents = header and header.Contents
 
 			if parchmentRemover then
-				if contents and contents.Text then contents.Text:SetTextColor(1, .8, 0) end -- Normal Header Text
-				if header and header.Text then header.Text:SetTextColor(1, .8, 0) end -- Torghast Header Text
+				if contents and contents.Text then contents.Text:SetTextColor(1, 0.8, 0) end -- Normal Header Text
+				if header and header.Text then header.Text:SetTextColor(1, 0.8, 0) end -- Torghast Header Text
 				if option.OptionText then option.OptionText:SetTextColor(1, 1, 1) end -- description text
 			end
 
@@ -82,6 +101,19 @@ function S:PlayerChoice_SetupOptions()
 
 			S:PlayerChoice_SetupRewards(option.rewards)
 			S:PlayerChoice_SetupButtons(option.buttons)
+
+			local container = option.WidgetContainer
+			if container and container.widgetFrames then
+				for _, frame in pairs(container.widgetFrames) do
+					if frame.Text then
+						frame.Text:SetTextColor(1, 1, 1)
+					end
+
+					if frame.Spell then
+						ReskinSpellWidget(frame.Spell)
+					end
+				end
+			end
 		end
 	end
 end
@@ -96,7 +128,7 @@ function S:TorghastButton_StartEffect(effectID)
 end
 
 local function SetupTorghastMover()
-	B:BuildWidgetHolder('TorghastChoiceToggleHolder', 'TorghastChoiceToggle', 'CENTER', L["Torghast Choice Toggle"], _G.TorghastPlayerChoiceToggleButton, 'CENTER', E.UIParent, 'CENTER', 0, -200, 300, 40, 'ALL,GENERAL')
+	BL:BuildWidgetHolder('TorghastChoiceToggleHolder', 'TorghastChoiceToggle', 'CENTER', L["Torghast Choice Toggle"], _G.TorghastPlayerChoiceToggleButton, 'CENTER', E.UIParent, 'CENTER', 0, -200, 300, 40, 'ALL,GENERAL')
 
 	-- whole area is clickable which is pretty big; keep an eye on this
 	_G.TorghastPlayerChoiceToggleButton:SetHitRectInsets(70, 70, 40, 40)

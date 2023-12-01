@@ -11,28 +11,34 @@ local assert, type, pcall, xpcall, next, print = assert, type, pcall, xpcall, ne
 local rawget, rawset, setmetatable = rawget, rawset, setmetatable
 
 local CreateFrame = CreateFrame
-local GetSpellInfo = GetSpellInfo
-local GetCVarBool = GetCVarBool
+local GetBindingKey = GetBindingKey
+local GetCurrentBindingSet = GetCurrentBindingSet
 local GetNumGroupMembers = GetNumGroupMembers
+local GetSpellInfo = GetSpellInfo
 local InCombatLockdown = InCombatLockdown
-local GetAddOnEnableState = GetAddOnEnableState
-local UnitFactionGroup = UnitFactionGroup
-local DisableAddOn = DisableAddOn
 local IsInGroup = IsInGroup
 local IsInGuild = IsInGuild
 local IsInRaid = IsInRaid
 local ReloadUI = ReloadUI
-local UnitGUID = UnitGUID
-local GetBindingKey = GetBindingKey
-local SetBinding = SetBinding
 local SaveBindings = SaveBindings
-local GetCurrentBindingSet = GetCurrentBindingSet
-local GetSpecialization = (E.Classic or E.Wrath and LCS.GetSpecialization) or GetSpecialization
+local SetBinding = SetBinding
+local UIParent = UIParent
+local UnitFactionGroup = UnitFactionGroup
+local UnitGUID = UnitGUID
 
-local ERR_NOT_IN_COMBAT = ERR_NOT_IN_COMBAT
+local GetSpecialization = (E.Classic or E.Wrath) and LCS.GetSpecialization or GetSpecialization
+
+local DisableAddOn = (C_AddOns and C_AddOns.DisableAddOn) or DisableAddOn
+local GetAddOnMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+local GetCVarBool = C_CVar.GetCVarBool
+
+local C_AddOns_GetAddOnEnableState = C_AddOns and C_AddOns.GetAddOnEnableState
+local GetAddOnEnableState = GetAddOnEnableState -- eventually this will be on C_AddOns and args swap
+
 local LE_PARTY_CATEGORY_HOME = LE_PARTY_CATEGORY_HOME
 local LE_PARTY_CATEGORY_INSTANCE = LE_PARTY_CATEGORY_INSTANCE
 local C_ChatInfo_SendAddonMessage = C_ChatInfo.SendAddonMessage
+
 -- GLOBALS: ElvCharacterDB
 
 --Modules
@@ -55,24 +61,25 @@ local LSM = E.Libs.LSM
 --Constants
 E.noop = function() end
 E.title = format('%s%s|r', E.InfoColor, 'ElvUI')
-E.version = tonumber(GetAddOnMetadata('ElvUI', 'Version'))
 E.toc = tonumber(GetAddOnMetadata('ElvUI', 'X-Interface'))
+E.version = tonumber(GetAddOnMetadata('ElvUI', 'Version'))
 E.myfaction, E.myLocalizedFaction = UnitFactionGroup('player')
-E.mylevel = UnitLevel('player')
 E.myLocalizedClass, E.myclass, E.myClassID = UnitClass('player')
 E.myLocalizedRace, E.myrace, E.myRaceID = UnitRace('player')
+E.mylevel = UnitLevel('player')
 E.myname = UnitName('player')
 E.myrealm = GetRealmName()
 E.mynameRealm = format('%s - %s', E.myname, E.myrealm) -- contains spaces/dashes in realm (for profile keys)
-E.myspec = E.Retail and GetSpecialization()
+E.myspec = GetSpecialization()
 E.wowbuild = tonumber(E.wowbuild)
 E.physicalWidth, E.physicalHeight = GetPhysicalScreenSize()
 E.screenWidth, E.screenHeight = GetScreenWidth(), GetScreenHeight()
 E.resolution = format('%dx%d', E.physicalWidth, E.physicalHeight)
 E.perfect = 768 / E.physicalHeight
 E.NewSign = [[|TInterface\OptionsFrame\UI-OptionsFrame-NewFeatureIcon:14:14|t]]
+E.NewSignNoWhatsNew = [[|TInterface\OptionsFrame\UI-OptionsFrame-NewFeatureIcon:14:14:0:0|t]]
 E.TexturePath = [[Interface\AddOns\ElvUI\Media\Textures\]] -- for plugins?
-E.ClearTexture = not E.Classic and 0 or '' -- used to clear: Set (Normal, Disabled, Checked, Pushed, Highlight) Texture
+E.ClearTexture = 0 -- used to clear: Set (Normal, Disabled, Checked, Pushed, Highlight) Texture
 E.UserList = {}
 
 -- oUF Defines
@@ -118,17 +125,10 @@ E.InverseAnchors = {
 	TOPRIGHT = 'BOTTOMLEFT'
 }
 
-E.DispelFilter = E.Libs.Dispel:GetMyDispelTypes()
-
-E.BadDispels = {
-	[34914]		= 'Vampiric Touch',		-- horrifies
-	[233490]	= 'Unstable Affliction'	-- silences
-}
-
---Workaround for people wanting to use white and it reverting to their class color.
+-- Workaround for people wanting to use white and it reverting to their class color.
 E.PriestColors = { r = 0.99, g = 0.99, b = 0.99, colorStr = 'fffcfcfc' }
 
--- Socket Type info from 8.2
+-- Socket Type info from 10.0.7
 E.GemTypeInfo = {
 	Yellow			= { r = 0.97, g = 0.82, b = 0.29 },
 	Red				= { r = 1.00, g = 0.47, b = 0.47 },
@@ -140,11 +140,15 @@ E.GemTypeInfo = {
 	PunchcardRed	= { r = 1.00, g = 0.47, b = 0.47 },
 	PunchcardYellow	= { r = 0.97, g = 0.82, b = 0.29 },
 	PunchcardBlue	= { r = 0.47, g = 0.67, b = 1.00 },
+	Domination		= { r = 0.24, g = 0.50, b = 0.70 },
+	Cypher			= { r = 1.00, g = 0.80, b = 0.00 },
+	Tinker			= { r = 1.00, g = 0.47, b = 0.47 },
+	Primordial		= { r = 1.00, g = 0.00, b = 1.00 },
 }
 
 --This frame everything in ElvUI should be anchored to for Eyefinity support.
-E.UIParent = CreateFrame('Frame', 'ElvUIParent', _G.UIParent)
-E.UIParent:SetFrameLevel(_G.UIParent:GetFrameLevel())
+E.UIParent = CreateFrame('Frame', 'ElvUIParent', UIParent)
+E.UIParent:SetFrameLevel(UIParent:GetFrameLevel())
 E.UIParent:SetSize(E.screenWidth, E.screenHeight)
 E.UIParent:SetPoint('BOTTOM')
 E.UIParent.origHeight = E.UIParent:GetHeight()
@@ -154,7 +158,7 @@ E.UFParent = _G.ElvUFParent -- created in oUF
 E.UFParent:SetParent(E.UIParent)
 E.UFParent:SetFrameStrata('LOW')
 
-E.HiddenFrame = CreateFrame('Frame', nil, _G.UIParent)
+E.HiddenFrame = CreateFrame('Frame', nil, UIParent)
 E.HiddenFrame:SetPoint('BOTTOM')
 E.HiddenFrame:SetSize(1,1)
 E.HiddenFrame:Hide()
@@ -191,7 +195,7 @@ function E:GrabColorPickerValues(r, g, b)
 	local oldR, oldG, oldB = _G.ColorPickerFrame:GetColorRGB()
 
 	-- set and define the new values
-	_G.ColorPickerFrame:SetColorRGB(r, g, b)
+	_G.ColorPickerFrame:SetColorRGB(r or 1, g or 1, b or 1)
 	r, g, b = _G.ColorPickerFrame:GetColorRGB()
 
 	-- swap back to the old values
@@ -511,7 +515,11 @@ do
 end
 
 function E:IsAddOnEnabled(addon)
-	return GetAddOnEnableState(E.myname, addon) == 2
+	if C_AddOns_GetAddOnEnableState then
+		return C_AddOns_GetAddOnEnableState(addon, E.myname) == 2
+	else
+		return GetAddOnEnableState(E.myname, addon) == 2
+	end
 end
 
 function E:IsIncompatible(module, addons)
@@ -905,10 +913,10 @@ do
 				E.UserList[E:StripMyRealm(sender)] = msg
 
 				if msg and (msg > ver) and not E.recievedOutOfDateMessage then -- you're outdated D:
-					E:Print(L["ElvUI is out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"])
+					E:Print(L["ElvUI is out of date. You can download the newest version from tukui.org."])
 
 					if msg and ((msg - ver) >= 0.05) and not inCombat then
-						E.PopupDialogs.ELVUI_UPDATE_AVAILABLE.text = L["ElvUI is five or more revisions out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"]..format('|n|nSender %s : Version %s', sender, msg)
+						E.PopupDialogs.ELVUI_UPDATE_AVAILABLE.text = L["ElvUI is five or more revisions out of date. You can download the newest version from tukui.org."]..format('\n\nSender %s : Version %s', sender, msg)
 
 						E:StaticPopup_Show('ELVUI_UPDATE_AVAILABLE')
 					end
@@ -1435,6 +1443,7 @@ end
 
 function E:UpdateMediaItems(skipCallback)
 	E:UpdateMedia()
+	E:UpdateDispelColors()
 	E:UpdateFrameTemplates()
 	E:UpdateStatusBars()
 
@@ -1794,7 +1803,7 @@ function E:ResetAllUI()
 end
 
 function E:ResetUI(...)
-	if InCombatLockdown() then E:Print(ERR_NOT_IN_COMBAT) return end
+	if E:AlertCombat() then return end
 
 	if ... == '' or ... == ' ' or ... == nil then
 		E:StaticPopup_Show('RESETUI_CHECK')
@@ -1965,6 +1974,7 @@ function E:Initialize()
 	E:RefreshModulesDB()
 	E:LoadMovers()
 	E:UpdateMedia()
+	E:UpdateDispelColors()
 	E:UpdateCooldownSettings('all')
 	E:Contruct_StaticPopups()
 
@@ -1978,12 +1988,21 @@ function E:Initialize()
 
 	E.initialized = true
 
-	if E.db.general.smoothingAmount and (E.db.general.smoothingAmount ~= 0.33) then
+	if E.db.general.tagUpdateRate and (E.db.general.tagUpdateRate ~= P.general.tagUpdateRate) then
+		E:TagUpdateRate(E.db.general.tagUpdateRate)
+	end
+
+	if E.db.general.smoothingAmount and (E.db.general.smoothingAmount ~= P.general.smoothingAmount) then
 		E:SetSmoothingAmount(E.db.general.smoothingAmount)
 	end
 
 	if not E.private.install_complete then
 		E:Install()
+	end
+
+	if E.version ~= E.Libs.version then
+		E.updateRequestTriggered = true
+		E:StaticPopup_Show('UPDATE_REQUEST')
 	end
 
 	if GetCVarBool('scriptProfile') and not E:IsAddOnEnabled('ElvUI_CPU') then

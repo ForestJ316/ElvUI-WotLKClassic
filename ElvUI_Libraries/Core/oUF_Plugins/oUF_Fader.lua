@@ -9,8 +9,10 @@ assert(oUF, "oUF_Fader cannot find an instance of oUF. If your oUF is embedded i
 local _G = _G
 local pairs, ipairs, type = pairs, ipairs, type
 local next, tinsert, tremove = next, tinsert, tremove
+
 local CreateFrame = CreateFrame
 local GetMouseFocus = GetMouseFocus
+local GetInstanceInfo = GetInstanceInfo
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitCastingInfo = UnitCastingInfo
 local UnitChannelInfo = UnitChannelInfo
@@ -21,6 +23,7 @@ local UnitHealthMax = UnitHealthMax
 local UnitPower = UnitPower
 local UnitPowerMax = UnitPowerMax
 local UnitPowerType = UnitPowerType
+local C_PlayerInfo_GetGlidingInfo = C_PlayerInfo and C_PlayerInfo.GetGlidingInfo
 
 -- These variables will be left-over when disabled if they were used (for reuse later if they become re-enabled):
 ---- Fader.HoverHooked, Fader.TargetHooked
@@ -54,6 +57,18 @@ local function ToggleAlpha(self, element, endAlpha)
 	end
 end
 
+local function updateInstanceDifficulty(element)
+	local _, _, difficultyID = GetInstanceInfo()
+	element.InstancedCached = element.InstanceDifficulty and element.InstanceDifficulty[difficultyID] or nil
+end
+
+local function CanGlide()
+	if not C_PlayerInfo_GetGlidingInfo then return end
+
+	local _, canGlide = C_PlayerInfo_GetGlidingInfo()
+	return canGlide
+end
+
 local function Update(self, _, unit)
 	local element = self.Fader
 	if self.isForced or (not element or not element.count or element.count <= 0) then
@@ -61,16 +76,26 @@ local function Update(self, _, unit)
 		return
 	end
 
-	unit = unit or self.unit
+	-- Instance Difficulty is enabled and we haven't checked yet
+	if element.InstanceDifficulty and not element.InstancedCached then
+		updateInstanceDifficulty(element)
+	end
+
+	-- try to get the unit from the parent
+	if not unit then
+		unit = self.unit
+	end
 
 	-- range fader
 	if element.Range then
 		if element.UpdateRange then
 			element.UpdateRange(self, unit)
 		end
+
 		if element.RangeAlpha then
 			ToggleAlpha(self, element, element.RangeAlpha)
 		end
+
 		return
 	end
 
@@ -80,7 +105,7 @@ local function Update(self, _, unit)
 		_, powerType = UnitPowerType(unit)
 	end
 
-	if
+	if	(element.InstanceDifficulty and element.InstancedCached) or
 		(element.Casting and (UnitCastingInfo(unit) or UnitChannelInfo(unit))) or
 		(element.Combat and UnitAffectingCombat(unit)) or
 		(element.PlayerTarget and UnitExists('target')) or
@@ -89,20 +114,19 @@ local function Update(self, _, unit)
 		(element.Health and UnitHealth(unit) < UnitHealthMax(unit)) or
 		(element.Power and (PowerTypesFull[powerType] and UnitPower(unit) < UnitPowerMax(unit))) or
 		(element.Vehicle and (oUF.isRetail or oUF.isWrath) and UnitHasVehicleUI(unit)) or
+		(element.DynamicFlight and oUF.isRetail and not CanGlide()) or
 		(element.Hover and GetMouseFocus() == (self.__faderobject or self))
 	then
 		ToggleAlpha(self, element, element.MaxAlpha)
-	else
-		if element.Delay then
-			if element.DelayAlpha then
-				ToggleAlpha(self, element, element.DelayAlpha)
-			end
-
-			element:ClearTimers()
-			element.delayTimer = E:ScheduleTimer(ToggleAlpha, element.Delay, self, element, element.MinAlpha)
-		else
-			ToggleAlpha(self, element, element.MinAlpha)
+	elseif element.Delay then
+		if element.DelayAlpha then
+			ToggleAlpha(self, element, element.DelayAlpha)
 		end
+
+		element:ClearTimers()
+		element.delayTimer = E:ScheduleTimer(ToggleAlpha, element.Delay, self, element, element.MinAlpha)
+	else
+		ToggleAlpha(self, element, element.MinAlpha)
 	end
 end
 
@@ -122,6 +146,12 @@ local function onRangeUpdate(frame, elapsed)
 
 		frame.timer = 0
 	end
+end
+
+local function onInstanceDifficulty(self)
+	local element = self.Fader
+	updateInstanceDifficulty(element)
+	element:ForceUpdate()
 end
 
 local function HoverScript(self)
@@ -218,15 +248,15 @@ local options = {
 	},
 	Health = {
 		enable = function(self)
-			if oUF.isRetail then
-				self:RegisterEvent('UNIT_HEALTH', Update)
-			else
+			if oUF.isClassic then
 				self:RegisterEvent('UNIT_HEALTH_FREQUENT', Update)
+			else
+				self:RegisterEvent('UNIT_HEALTH', Update)
 			end
 
 			self:RegisterEvent('UNIT_MAXHEALTH', Update)
 		end,
-		events = oUF.isRetail and {'UNIT_HEALTH','UNIT_MAXHEALTH'} or {'UNIT_HEALTH_FREQUENT','UNIT_MAXHEALTH'}
+		events = oUF.isClassic and {'UNIT_HEALTH_FREQUENT','UNIT_MAXHEALTH'} or {'UNIT_HEALTH','UNIT_MAXHEALTH'}
 	},
 	Power = {
 		enable = function(self)
@@ -251,6 +281,15 @@ local options = {
 		end,
 		events = {'UNIT_SPELLCAST_START','UNIT_SPELLCAST_FAILED','UNIT_SPELLCAST_STOP','UNIT_SPELLCAST_INTERRUPTED','UNIT_SPELLCAST_CHANNEL_START','UNIT_SPELLCAST_CHANNEL_STOP'}
 	},
+	InstanceDifficulty = {
+		enable = function(self)
+			self:RegisterEvent('ZONE_CHANGED', onInstanceDifficulty, true)
+			self:RegisterEvent('ZONE_CHANGED_INDOORS', onInstanceDifficulty, true)
+			self:RegisterEvent('ZONE_CHANGED_NEW_AREA', onInstanceDifficulty, true)
+			self:RegisterEvent('PLAYER_DIFFICULTY_CHANGED', onInstanceDifficulty, true)
+		end,
+		events = {'ZONE_CHANGED', 'ZONE_CHANGED_INDOORS', 'ZONE_CHANGED_NEW_AREA', 'PLAYER_DIFFICULTY_CHANGED'}
+	},
 	MinAlpha = {
 		countIgnored = true,
 		enable = function(self, state)
@@ -271,6 +310,13 @@ local options = {
 if oUF.isRetail then
 	tinsert(options.Casting.events, 'UNIT_SPELLCAST_EMPOWER_START')
 	tinsert(options.Casting.events, 'UNIT_SPELLCAST_EMPOWER_STOP')
+	options.DynamicFlight = {
+		enable = function(self)
+			self:RegisterEvent('PLAYER_GAINS_VEHICLE_DATA', Update, true)
+			self:RegisterEvent('PLAYER_LOSES_VEHICLE_DATA', Update, true)
+		end,
+		events = {'PLAYER_GAINS_VEHICLE_DATA','PLAYER_LOSES_VEHICLE_DATA'}
+	}
 end
 
 if not oUF.isClassic then
@@ -304,11 +350,15 @@ local function SetOption(element, opt, state)
 	local option = ((opt == 'UnitTarget' or opt == 'PlayerTarget') and 'Target') or opt
 	local oldState = element[opt]
 
+	if opt == 'InstanceDifficulty' then
+		element.InstancedCached = nil -- clear the cached value
+	end
+
 	if option and options[option] and (oldState ~= state) then
 		element[opt] = state
 
 		if state then
-			if type(state) == 'table' then
+			if type(state) == 'table' and opt ~= 'InstanceDifficulty' then
 				state.__faderelement = element
 				element.__owner.__faderobject = state
 			end
