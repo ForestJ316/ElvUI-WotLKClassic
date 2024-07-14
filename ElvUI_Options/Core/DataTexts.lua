@@ -190,7 +190,7 @@ local function CreateDTOptions(name, data)
 		end
 
 		if name == 'Bags' then
-			optionTable.args.includeReagents = ACH:Toggle(E.NewSign..L["Include Reagents"], nil, 5)
+			optionTable.args.includeReagents = ACH:Toggle(L["Include Reagents"], nil, 5)
 			optionTable.args.textFormat.values = { FREE = L["Only Free Slots"], USED = L["Only Used Slots"], FREE_TOTAL = L["Free/Total"], USED_TOTAL = L["Used/Total"] }
 		elseif name == 'Combat' then
 			optionTable.args.TimeFull = ACH:Toggle(L["Full Time"], nil, 5)
@@ -242,6 +242,7 @@ local function CreateDTOptions(name, data)
 		elseif name == 'Talent/Loot Specialization' then
 			optionTable.args.displayStyle = ACH:Select(L["Display Style"], nil, 1, { SPEC = L["Specializations Only"], LOADOUT = L["Loadout Only"], BOTH = L["Spec/Loadout"] })
 			optionTable.args.iconOnly = ACH:Toggle(L["Icons Only"], L["Only show icons instead of specialization names"], 2)
+			optionTable.args.iconSize = ACH:Range(L["Icon Size"], nil, 3, { min = 10, softMax = 24, step = 1})
 		elseif name == 'Time' then
 			optionTable.args.time24 = ACH:Toggle(L["24-Hour Time"], L["Toggle 24-hour mode for the time datatext."], 5)
 			optionTable.args.seconds = ACH:Toggle(L["Seconds"], L["Show seconds on the time display."], 6)
@@ -322,7 +323,7 @@ local function getCurrencyList()
 	return list
 end
 
-DataTexts.args.customCurrency = ACH:Group(L["Custom Currency"], nil, 6, nil, nil, nil, nil, not (E.Retail or E.Wrath))
+DataTexts.args.customCurrency = ACH:Group(L["Custom Currency"], nil, 6, nil, nil, nil, nil, not (E.Retail or E.Cata))
 DataTexts.args.customCurrency.args.description = ACH:Description(L["This allows you to create a new datatext which will track the currency with the supplied currency ID. The datatext can be added to a panel immediately after creation."], 0)
 DataTexts.args.customCurrency.args.add = ACH:Select(L["Add Currency"], nil, 1, getCurrencyList, nil, 'double', nil, addCurrency)
 DataTexts.args.customCurrency.args.addID = ACH:Input(L["Add Currency by ID"], nil, 2, nil, 'double', C.Blank, addCurrency)

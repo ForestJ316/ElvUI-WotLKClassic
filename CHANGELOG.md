@@ -1,3 +1,135 @@
+### Version 13.70 [ July 12th 2024 ]
+*   Cooldowns not finishing correctly.
+*   Achievement skin error on Cataclysm.
+
+### Version 13.69 [ July 10th 2024 ]
+*   SetCooldown error when using vehicles and Loss of Control cooldowns timers work again.
+*   Communities frame skin updated and the toggles updated for Minimap and Datatext.
+*   Visibility settings for Enchants, Gems, and Item Level for Inspect and Character.
+*   Skinned Swim timers on Classic.
+*   Blacklisted Evoker lust debuff.
+
+### Version 13.68 [ July 9th 2024 ]
+*   Enchant info to display with Item Level on Character and Inspect frames.
+*   Player nameplate not obeying Use Class Color option for Power.
+*   Translit tags sometimes not returning properly.
+*   Frame Level and Strata options for Unitframe power, auras, and frames.
+*   Hit Datatext not updating in some situations.
+*   Attack Power Datatext now has label options.
+*   Role Checkboxes set to the correct level on Guild Finder.
+*   New tags [health:percent-with-absorbs:nostatus] and [health:current:name]
+
+### Version 13.67 [ June 26th 2024 ]
+*   Skinned LFG and Dressing Room scrollbar.
+*   Guild reputation progress bar fixed.
+*   Player Alt Power bar not staying connected to its mover.
+*   ObjectiveTracker leveling taint  (Retail & Panda Remix).
+*   Guild Datatext timer Timerunning icon shows correctly.
+*   Mastery & Haste Datatext added for Cataclysm (Thanks Tsxy).
+*   Healer only and Auto hide options for Unitframe power.
+*   Cataclysm tooltip can now show Item Level.
+
+### Version 13.66 [ May 31st 2024 ]
+*   Classic: Combo points appearing on new targets.
+*   Cataclysm: Reforge skin toggle not working and PVP skin updated.
+*   Raid Utility: Removed the ability to move this in combat because of secure elements.
+*   Timerunning icon added for Chat, Guild Datatext, and Friends Datatext.
+*   Castbar ticks not working properly when castbars were enabled on group frames.
+
+### Version 13.65 [ May 24th 2024 ]
+*   Cataclysm: Druid and Paladin dispel fix.
+*   Cataclysm: AuraWatch & Spell Filter updates.
+*   Cataclysm: Cabal Zealot chat bug fixed.
+*   Cataclysm: Rogue Redirect & Combo Points fixed.
+*   Cataclysm: Friends frame skin error fixed.
+*   Group frames now show Alternative Power options.
+*   Guild Instance Difficulty icon shows correctly.
+*   Missing battleground healer/tank icons on some locales.
+*   Raid Utility: Target Icons (all), Role Icons (party), World Markers (Cata)
+*   Panda Remix: Fixed double character page gem display.
+*   Party Pets & Target: Individual Glow settings added.
+
+### Version 13.64 [ May 7th 2024 ]
+*   Cataclysm Hotfixes
+    *   Shaman dispel conditions fixed. (Thanks Oppzippy)
+    *   Bag menu to assign removed as the API doesn't work anymore.
+    *   Bag Starter Quest icon not displaying.
+    *   Quest NPC Model text too large.
+    *   Equipment flyout border colors.
+    *   Pet Stable skin updated.
+
+### Version 13.63 [ May 2nd 2024 ]
+*   Cataclysm Hotfixes
+    *   Color Picker
+    *   Battleground Queue
+    *   Skinned GhostFrame
+    *   Fixed Resilience and Item Level Datatext
+    *   Removed Ammo, Pet Happiness, and Primary Stat Datatext
+
+### Version 13.62 [ April 30th 2024 ]
+*   Cataclysm Classic ready.
+*   DualSpec enabled for SoD.
+*   Shadowform paging on Era.
+*   Guild Deaths event not existing on Era, causing an error.
+*   Range of Unitframes breaking when Spell Ranks unchecked.
+*   Aura Indicator option for Pet Frames to use Profile or Global instead (uncheck Pet Specific).
+*   Threat option added to allow high threat to be shown without being primary target, also another to display Player threat on Target or Focus frame.
+*   Tag [threat:lead] added to display percentage of threat lead.
+*   Raid Utility displayed while in a group, regardless of Leader or Assist, with limited functionality.
+*   Sunken Temple now on Time Datatext.
+
+### Version 13.61 [ April 2nd 2024 ]
+*   Microbar Support Ticket button in middle of screen.
+*   Minimap Icons not hiding when using the keybind for Toggle Minimap.
+*   No Label, Decimal Length, Custom Label options for the Leech Datatext.
+*   Minimap Difficulty icon not respecting offsets on Wrath.
+*   Party and RaidPets not spawning until after combat.
+*   SoD Mage at low level having incorrect range on friendly NPCs.
+*   Wrath Nightelf Shadowmeld causing a taint during combat.
+*   LibDispel Bleed list updated again.
+*   Chat AFK and DND not displaying on Retail.
+
+### Version 13.60 [ March 19th 2024 ]
+*   Difficulty Icon on Minimap improved, resolving an issue with the mouseover tooltip.
+*   Pet Battle XP bar overlapped Pass button.
+*   Encounter Journal error on open resolved.
+*   Text To Speech button added to Chat > Voice Chat.
+*   Reputation Databar being clickable during combat.
+*   Error when using /tts when Chat Voice buttons were disabled.
+*   Classic SoD: Mage runes added to improve Range Fader for lower levels (Regeneration and Mass Regeneration).
+*   Classic: Hunter/Rogue/Warrior Range Fader corrected.
+*   Classic: Send Mail text color corrected.
+*   Classic: Bags Quiver border missing on bags at first login.
+*   Classic: Bags Sorting breaking when Quivers tried to sort into other Quivers.
+
+### Version 13.59 [ February 23rd 2024 ]
+*   Gnomeregan filters updated.
+*   Whitelisted Suspended World Buffs.
+*   Toggling spell ranks trigger range display issue.
+*   Updated allied races model skin.
+*   Currency error when using Better Bags.
+*   Season of Discovery Instance IDs added for the Raid Lockouts on Time Datatext.
+*   Filter creation error resolved when a filter and spell was selected.
+*   Raid Utility button supports boss mod cooldown function. (Wrath/Classic)
+*   Closing whisper tab mid-combat no longer causes errors.
+*   Blizzard options tooltip issue after displaying the Action Bars section resolved.
+*   Bags "itemButton" error fixed when adding a new Bag then reopening.
+*   Wrath Fury of Stormrage regen bug fixed. (Thanks ToddSisson)
+*   WeakAuras color picker save issue fixed. (Wrath)
+
+### Version 13.58 [ February 11th 2024 ]
+*   Updated LibRangeCheck which fixes the CheckInteractDistance error.
+*   Color Picker not saving properly on WeakAuras or other addons.
+*   The following Phase 2 auras have been added to AuraWatch & Whitelist:
+    *   Priest Renew
+    *   Priest Meditations
+    *   Druid Regrowth and Rejuvenation
+    *   Stranglethorn World Event Buff+Stacks
+    *   Stranglethorn Opt-Out PvP Buff
+    *   Dark Rider Rune discovery Buff
+    *   Cozy Sleeping Bag Buff+Stacks
+    *   Gnomeregan Raid Buffs+Debuffs
+
 ### Version 13.57 [ February 6th 2024 ]
 *   Classic: Blizzard fixed Top Auras
 

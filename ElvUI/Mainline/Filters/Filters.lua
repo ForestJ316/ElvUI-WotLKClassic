@@ -637,6 +637,7 @@ G.unitframe.aurafilters.Blacklist = {
 		[374037]	= List(), -- Overwhelming Rage
 		[383600]	= List(), -- Surrounding Storm (Strunraan)
 		[390106]	= List(), -- Riding Along
+		[390435]	= List(), -- Exhaustion (Evoker lust debuff)
 		[392960]	= List(), -- Waygate Travel
 		[392992]	= List(), -- Silent Lava
 		[393798]	= List(), -- Activated Defense Systems
@@ -1734,6 +1735,8 @@ G.unitframe.ChannelTicks = {
 	[48045]		= 6, -- Mind Sear
 	[47757]		= 3, -- Penance (heal)
 	[47758]		= 3, -- Penance (dps)
+	[373129]	= 3, -- Penance (Dark Reprimand, dps)
+	[400171]	= 3, -- Penance (Dark Reprimand, heal)
 	[64902]		= 5, -- Symbol of Hope (Mana Hymn)
 	-- Mage
 	[5143]		= 4, -- Arcane Missiles
