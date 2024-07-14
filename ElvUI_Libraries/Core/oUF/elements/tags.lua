@@ -431,9 +431,8 @@ local tagStrings = {
 			return 'Ghost'
 		elseif(not UnitIsConnected(u)) then
 			return 'Offline'
-		elseif(UnitIsAFK(u)) then
-			--return _TAGS['resting'](u)
-			return 'AFK'
+		else
+			return _TAGS['resting'](u)
 		end
 	end]],
 
@@ -549,7 +548,7 @@ local tagEvents = {
 	['shortclassification'] = 'UNIT_CLASSIFICATION_CHANGED',
 	['smartlevel']          = 'UNIT_LEVEL PLAYER_LEVEL_UP UNIT_CLASSIFICATION_CHANGED',
 	['soulshards']          = 'UNIT_POWER_UPDATE',
-	['status']              = 'UNIT_HEALTH PLAYER_UPDATE_RESTING UNIT_CONNECTION PLAYER_FLAGS_CHANGED',
+	['status']              = 'UNIT_HEALTH PLAYER_UPDATE_RESTING UNIT_CONNECTION',
 	['threat']              = 'UNIT_THREAT_SITUATION_UPDATE',
 	['threatcolor']         = 'UNIT_THREAT_SITUATION_UPDATE',
 }
